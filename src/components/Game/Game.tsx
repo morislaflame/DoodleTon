@@ -34,7 +34,7 @@ const Game: React.FC = () => {
         i,
         {
           x: Math.random() * (GAME_CONFIG.GAME_WIDTH - GAME_CONFIG.PLATFORM_WIDTH),
-          y: (GAME_CONFIG.GAME_HEIGHT / GAME_CONFIG.PLATFORM_COUNT) * i
+          y: 50 + (GAME_CONFIG.GAME_HEIGHT / (GAME_CONFIG.PLATFORM_COUNT + 2)) * i
         },
         Math.random() < 0.8 ? 'normal' : 'moving'
       ));
@@ -86,6 +86,7 @@ const Game: React.FC = () => {
   const resetGame = useCallback(() => {
     setGameOver(false);
     setScore(0);
+    setCameraOffset(0);
     player.reset();
     generateInitialPlatforms();
     gameOverScreen.current = null;
@@ -98,12 +99,24 @@ const Game: React.FC = () => {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Если игра окончена, только отрисовываем
     if (gameOver) {
-      if (!gameOverScreen.current) {
-        gameOverScreen.current = new GameOver(score);
-      }
       draw(ctx);
+      return;
+    }
+
+    player.update(deltaTime, leftPressed, rightPressed);
+
+    // Обновляем смещение камеры только когда игрок поднимаетс�� выше
+    const targetCameraOffset = player.position.y - GAME_CONFIG.GAME_HEIGHT / 2;
+    if (targetCameraOffset > cameraOffset) {
+      setCameraOffset(targetCameraOffset);
+    }
+
+    // Проверяем падение игрока относительно камеры
+    const playerScreenPosition = player.position.y - cameraOffset;
+    if (playerScreenPosition < 0) { // Игрок упал ниже экрана
+      console.log('Game Over - player fell below screen');
+      setGameOver(true);
       return;
     }
 
@@ -112,29 +125,19 @@ const Game: React.FC = () => {
       generateInitialPlatforms();
     }
 
-    player.update(deltaTime, leftPressed, rightPressed);
-
-    // Проверяем падение игрока
-    if (player.position.y + player.height < 0) {
-      setGameOver(true);
-      return;
-    }
-
     platforms.forEach(platform => {
       platform.update(deltaTime);
-      if (checkPlatformCollision(player, platform)) {
+      const collision = checkPlatformCollision(player, platform);
+      if (collision) {
         const { newVelocityY, shouldBreak } = handlePlatformCollision(player, platform);
         player.jump(newVelocityY);
+        player.isJumping = false; // Сбрасываем флаг прыжка при столкновении
         if (shouldBreak) {
           setPlatforms(prev => prev.filter(p => p.id !== platform.id));
         }
         setScore(prev => prev + 10);
       }
     });
-
-    // Обновляем смещение камеры, если игрок поднялся выше половины экрана
-    const targetCameraOffset = Math.max(0, player.position.y - GAME_CONFIG.GAME_HEIGHT / 2);
-    setCameraOffset(targetCameraOffset);
 
     // Генерируем новые платформы, если игрок поднялся достаточно высоко
     const highestPlatform = Math.max(...platforms.map(p => p.position.y));
@@ -151,9 +154,8 @@ const Game: React.FC = () => {
       platform.position.y > player.position.y - GAME_CONFIG.GAME_HEIGHT
     ));
 
-    // Отрисовываем обновленное состояние
     draw(ctx);
-  }, [platforms, leftPressed, rightPressed, gameOver, score, player, generateInitialPlatforms, draw, generatePlatform]);
+  }, [platforms, leftPressed, rightPressed, draw, generateInitialPlatforms, player, gameOver, cameraOffset]);
 
   const handleCanvasClick = useCallback((event: React.MouseEvent<HTMLCanvasElement>) => {
     if (!gameOver || !gameOverScreen.current) return;
@@ -166,6 +168,7 @@ const Game: React.FC = () => {
     const y = event.clientY - rect.top;
 
     if (gameOverScreen.current.isRestartButtonClicked(x, y)) {
+      console.log('Restart button clicked');
       resetGame();
     }
   }, [gameOver, resetGame]);

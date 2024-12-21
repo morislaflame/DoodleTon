@@ -45,7 +45,7 @@ export class Player {
       this.velocity.x = 0;
     }
 
-    // Применя��м гравитацию
+    // Применяем гравитацию
     this.velocity.y -= GAME_CONFIG.GRAVITY;
 
     // Обновляем позицию
@@ -61,7 +61,10 @@ export class Player {
   }
 
   jump(force: number) {
-    this.velocity.y = force;
+    if (!this.isJumping) {
+      this.velocity.y = force;
+      this.isJumping = true;
+    }
   }
 
   reset() {
