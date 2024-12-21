@@ -1,0 +1,10 @@
+.player {
+    position: absolute;
+    background-color: #4a90e2;
+    border-radius: 50%;
+    transition: transform 0.1s;
+  }
+  
+  .player.facing-left {
+    transform: scaleX(-1);
+  }
