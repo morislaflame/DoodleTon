@@ -15,6 +15,7 @@ const Game: React.FC = () => {
   const [platforms, setPlatforms] = useState<Platform[]>([]);
   const [score, setScore] = useState(0);
   const gameOverScreen = useRef<GameOver | null>(null);
+  const [cameraOffset, setCameraOffset] = useState(0);
   
   const leftPressed = useKeyPress('ArrowLeft');
   const rightPressed = useKeyPress('ArrowRight');
@@ -22,7 +23,6 @@ const Game: React.FC = () => {
   // Генерация начальных платформ
   const generateInitialPlatforms = useCallback(() => {
     const newPlatforms: Platform[] = [];
-    // Добавляем стартовую платформу ������од игроком
     newPlatforms.push(new Platform(0, {
       x: GAME_CONFIG.GAME_WIDTH / 2 - GAME_CONFIG.PLATFORM_WIDTH / 2,
       y: 50
@@ -42,6 +42,18 @@ const Game: React.FC = () => {
     setPlatforms(newPlatforms);
   }, []);
 
+  // Функция для генерации новой платформы
+  const generatePlatform = useCallback((yPosition: number) => {
+    return new Platform(
+      Date.now(), // уникальный id
+      {
+        x: Math.random() * (GAME_CONFIG.GAME_WIDTH - GAME_CONFIG.PLATFORM_WIDTH),
+        y: yPosition
+      },
+      Math.random() < 0.8 ? 'normal' : 'moving'
+    );
+  }, []);
+
   // Отрисовка на canvas
   const draw = useCallback((ctx: CanvasRenderingContext2D) => {
     ctx.clearRect(0, 0, GAME_CONFIG.GAME_WIDTH, GAME_CONFIG.GAME_HEIGHT);
@@ -54,15 +66,22 @@ const Game: React.FC = () => {
       return;
     }
     
-    // Рисуем игровые объекты
+    // Сохраняем контекст перед трансформацией
+    ctx.save();
+    // Сдвигаем весь контекст на величину смещения камеры
+    ctx.translate(0, cameraOffset);
+    
+    // Рисуем игровые объекты с учетом смещения
     player.draw(ctx);
     platforms.forEach(platform => platform.draw(ctx));
     
-    // Рисуем счет
+    ctx.restore();
+    
+    // Рисуем счет поверх всего (без смещения)
     ctx.fillStyle = '#000';
     ctx.font = '20px Arial';
     ctx.fillText(`Score: ${score}`, 10, 30);
-  }, [player, platforms, score, gameOver]);
+  }, [player, platforms, score, gameOver, cameraOffset]);
 
   const resetGame = useCallback(() => {
     setGameOver(false);
@@ -113,9 +132,28 @@ const Game: React.FC = () => {
       }
     });
 
+    // Обновляем смещение камеры, если игрок поднялся выше половины экрана
+    const targetCameraOffset = Math.max(0, player.position.y - GAME_CONFIG.GAME_HEIGHT / 2);
+    setCameraOffset(targetCameraOffset);
+
+    // Генерируем новые платформы, если игрок поднялся достаточно высоко
+    const highestPlatform = Math.max(...platforms.map(p => p.position.y));
+    if (player.position.y + GAME_CONFIG.GAME_HEIGHT > highestPlatform) {
+      const newPlatforms = [...platforms];
+      for (let i = 0; i < 3; i++) {
+        newPlatforms.push(generatePlatform(highestPlatform + (i + 1) * 50));
+      }
+      setPlatforms(newPlatforms);
+    }
+
+    // Удаляем платформы, которые ушли далеко вниз
+    setPlatforms(prev => prev.filter(platform => 
+      platform.position.y > player.position.y - GAME_CONFIG.GAME_HEIGHT
+    ));
+
     // Отрисовываем обновленное состояние
     draw(ctx);
-  }, [platforms, leftPressed, rightPressed, gameOver, score, player, generateInitialPlatforms, draw]);
+  }, [platforms, leftPressed, rightPressed, gameOver, score, player, generateInitialPlatforms, draw, generatePlatform]);
 
   const handleCanvasClick = useCallback((event: React.MouseEvent<HTMLCanvasElement>) => {
     if (!gameOver || !gameOverScreen.current) return;
