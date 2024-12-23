@@ -15,24 +15,17 @@ export const checkPlatformCollision = (player: Player, platform: Platform): bool
   const platformLeft = platform.position.x;
   const platformRight = platform.position.x + platform.width;
 
+  // Изменяем определение нижней границы игрока
   const playerBottom = player.position.y;
   const platformTop = platform.position.y + platform.height;
 
-  if (Math.abs(playerBottom - platformTop) < 20) {
-    console.log('Near platform:', {
-      playerBottom,
-      platformTop,
-      diff: Math.abs(playerBottom - platformTop),
-      velocity: player.velocity.y
-    });
-  }
+  // Проверяем горизонтальное перекрытие
+  const horizontalOverlap = playerRight > platformLeft && playerLeft < platformRight;
+  
+  // Проверяем вертикальное перекрытие только в небольшом диапазоне над платформой
+  const verticalOverlap = Math.abs(playerBottom - platformTop) < 10;
 
-  return (
-    playerRight > platformLeft &&
-    playerLeft < platformRight &&
-    Math.abs(playerBottom - platformTop) < 10 &&
-    player.velocity.y < 0
-  );
+  return horizontalOverlap && verticalOverlap && player.velocity.y < 0;
 };
 
 // Обработка столкновения с платформой разного типа

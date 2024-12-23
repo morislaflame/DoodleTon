@@ -96,7 +96,7 @@ export class Player {
     }
 
     const drawX = this.position.x;
-    const drawY = GAME_CONFIG.GAME_HEIGHT - this.position.y - this.height;
+    const drawY = GAME_CONFIG.GAME_HEIGHT - this.position.y;
 
     // Увеличиваем размер спрайта
     const scaleFactor = 6; // Увеличиваем в 1.8 раза
