@@ -16,6 +16,7 @@ const Game: React.FC = () => {
   const [score, setScore] = useState(0);
   const gameOverScreen = useRef<GameOver | null>(null);
   const [cameraOffset, setCameraOffset] = useState(0);
+  const [maxHeight, setMaxHeight] = useState(0);
   
   const leftPressed = useKeyPress('ArrowLeft');
   const rightPressed = useKeyPress('ArrowRight');
@@ -156,6 +157,7 @@ const Game: React.FC = () => {
   const resetGame = useCallback(() => {
     setGameOver(false);
     setScore(0);
+    setMaxHeight(0);
     setCameraOffset(0);
     player.reset();
     generateInitialPlatforms();
@@ -206,10 +208,18 @@ const Game: React.FC = () => {
         if (shouldBreak) {
           platform.startBreaking();
         }
-        
-        setScore(prev => prev + 10);
       }
     });
+
+    // Обновляем максимальную высоту и очки реже
+    if (player.position.y > maxHeight) {
+      // Округляем до целых чисел и обновляем только при существенном изменении
+      const newHeight = Math.floor(player.position.y);
+      if (newHeight - maxHeight >= 1) { // Обновляем только при изменении на 1 или более единиц
+        setMaxHeight(newHeight);
+        setScore(prev => prev + (newHeight - Math.floor(maxHeight)));
+      }
+    }
 
     // Удаляем платформы, которые полностью разрушились
     setPlatforms(prev => prev.filter(platform => !platform.shouldBeRemoved()));
@@ -230,7 +240,7 @@ const Game: React.FC = () => {
     ));
 
     draw(ctx);
-  }, [platforms, leftPressed, rightPressed, draw, generateInitialPlatforms, player, gameOver, cameraOffset]);
+  }, [platforms, leftPressed, rightPressed, draw, generateInitialPlatforms, player, gameOver, cameraOffset, maxHeight]);
 
   const handleCanvasClick = useCallback((event: React.MouseEvent<HTMLCanvasElement>) => {
     if (!gameOver || !gameOverScreen.current) return;
