@@ -4,11 +4,12 @@ import { Platform } from '../Platform/Platform';
 import { GameOver } from '../GameOver/GameOver';
 import { GAME_CONFIG } from '../../utils/constants';
 import { useKeyPress } from '../../hooks/useKeyPress';
-import { checkPlatformCollision, handlePlatformCollision } from '../../utils/collision';
+import { checkBulletEnemyCollision, checkPlatformCollision, handlePlatformCollision } from '../../utils/collision';
 import { useGameLoop } from '../../hooks/useGameLoop';
 import './Game.styles.css';
 import { Enemy } from '../Enemy/Enemy';
 import { checkEnemyCollision } from '../../utils/collision';
+import { Bullet } from '../Bullet/Bullet';
 
 const Game: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -20,9 +21,26 @@ const Game: React.FC = () => {
   const [cameraOffset, setCameraOffset] = useState(0);
   const [maxHeight, setMaxHeight] = useState(0);
   const [enemies, setEnemies] = useState<Enemy[]>([]);
+  const [bullets, setBullets] = useState<Bullet[]>([]);
   
   const leftPressed = useKeyPress('ArrowLeft');
   const rightPressed = useKeyPress('ArrowRight');
+  const upPressed = useKeyPress('ArrowUp');
+  const lastShotTime = useRef(0);
+
+
+  const handleShooting = useCallback(() => {
+    const currentTime = Date.now();
+    // Ограничиваем частоту стрельбы (раз в 500мс)
+    if (currentTime - lastShotTime.current > 200) {
+      const bullet = new Bullet({
+        x: player.position.x + player.width / 2,
+        y: player.position.y + player.height
+      });
+      setBullets(prev => [...prev, bullet]);
+      lastShotTime.current = currentTime;
+    }
+  }, [player]);
 
   // Генерация начальных платформ
   const generateInitialPlatforms = useCallback(() => {
@@ -189,14 +207,14 @@ const Game: React.FC = () => {
     player.draw(ctx);
     platforms.forEach(platform => platform.draw(ctx));
     enemies.forEach(enemy => enemy.draw(ctx));
-    
+    bullets.forEach(bullet => bullet.draw(ctx));
     ctx.restore();
     
     // Рисуем счет поверх всего (без смещения)
     ctx.fillStyle = '#000';
     ctx.font = '20px Arial';
     ctx.fillText(`Score: ${score}`, 10, 30);
-  }, [player, platforms, score, gameOver, cameraOffset, enemies]);
+  }, [player, platforms, score, gameOver, cameraOffset, enemies, bullets]);
 
   const resetGame = useCallback(() => {
     setGameOver(false);
@@ -207,6 +225,7 @@ const Game: React.FC = () => {
     generateInitialPlatforms();
     gameOverScreen.current = null;
     setEnemies([]);
+    setBullets([]);
   }, [generateInitialPlatforms, player]);
 
   const updateGame = useCallback((deltaTime: number) => {
@@ -285,11 +304,12 @@ const Game: React.FC = () => {
       
       if (collision) {
         if (fromTop) {
-          // Игрок прыгнул на врага
-          player.jump(GAME_CONFIG.JUMP_FORCE * 1.1);
+          // Если игрок падает на врага сверху, отпрыгиваем
+          player.jump(GAME_CONFIG.JUMP_FORCE);
+          // Удаляем врага
           setEnemies(prev => prev.filter(e => e !== enemy));
         } else {
-          // Игрок столкнулся с врагом
+          // Если столкновение сбоку или снизу - игра окончена
           setGameOver(true);
           return;
         }
@@ -319,8 +339,30 @@ const Game: React.FC = () => {
       platform.position.y > player.position.y - GAME_CONFIG.GAME_HEIGHT
     ));
 
+    setBullets(prev => {
+        const updatedBullets = prev.filter(bullet => {
+          bullet.update();
+          // Удаляем пули, которые ушли за пределы экрана
+          return bullet.position.y < player.position.y + GAME_CONFIG.GAME_HEIGHT;
+        });
+        return updatedBullets;
+      });
+
+      bullets.forEach(bullet => {
+        enemies.forEach(enemy => {
+          if (checkBulletEnemyCollision(bullet, enemy)) {
+            setBullets(prev => prev.filter(b => b !== bullet));
+            setEnemies(prev => prev.filter(e => e !== enemy));
+          }
+        });
+      });
+
+      if (upPressed) {
+        handleShooting();
+      }
+
     draw(ctx);
-  }, [platforms, leftPressed, rightPressed, draw, generateInitialPlatforms, player, gameOver, cameraOffset, maxHeight, enemies]);
+  }, [platforms, leftPressed, rightPressed, draw, generateInitialPlatforms, player, gameOver, cameraOffset, maxHeight, enemies, bullets]);
 
   const handleCanvasClick = useCallback((event: React.MouseEvent<HTMLCanvasElement>) => {
     if (!gameOver || !gameOverScreen.current) return;

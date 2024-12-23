@@ -3,6 +3,7 @@ import { Platform } from '../components/Platform/Platform';
 import { GAME_CONFIG } from './constants';
 import { Boost } from '../components/Boost/Boost';
 import { Enemy } from '../components/Enemy/Enemy';
+import { Bullet } from '../components/Bullet/Bullet';
 
 // Проверка столкновения игрока с платформой
 export const checkPlatformCollision = (player: Player, platform: Platform): boolean => {
@@ -85,6 +86,7 @@ export const checkEnemyCollision = (player: Player, enemy: Enemy): { collision: 
   const playerTop = player.position.y + player.height;
   const enemyBottom = enemy.position.y;
   const enemyTop = enemy.position.y + enemy.height;
+
   const collision = playerRight > enemyLeft &&
   playerLeft < enemyRight &&
   playerTop > enemyBottom &&
@@ -97,3 +99,22 @@ const fromTop = collision &&
 
 return { collision, fromTop };
 };
+
+export const checkBulletEnemyCollision = (bullet: Bullet, enemy: Enemy): boolean => {
+    const bulletLeft = bullet.position.x - bullet.width / 2;
+    const bulletRight = bullet.position.x + bullet.width / 2;
+    const enemyLeft = enemy.position.x;
+    const enemyRight = enemy.position.x + enemy.width;
+  
+    const bulletBottom = bullet.position.y - bullet.height / 2;
+    const bulletTop = bullet.position.y + bullet.height / 2;
+    const enemyBottom = enemy.position.y;
+    const enemyTop = enemy.position.y + enemy.height;
+  
+    return (
+      bulletRight > enemyLeft &&
+      bulletLeft < enemyRight &&
+      bulletTop > enemyBottom &&
+      bulletBottom < enemyTop
+    );
+  };
