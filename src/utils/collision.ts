@@ -17,13 +17,13 @@ export const checkPlatformCollision = (player: Player, platform: Platform): bool
 
   // Изменяем определение нижней границы игрока
   const playerBottom = player.position.y;
-  const platformTop = platform.position.y + platform.height;
+  const platformTop = platform.position.y + platform.height * 2 ;
 
   // Проверяем горизонтальное перекрытие
   const horizontalOverlap = playerRight > platformLeft && playerLeft < platformRight;
   
-  // Проверяем вертикальное перекрытие только в небольшом диапазоне над платформой
-  const verticalOverlap = Math.abs(playerBottom - platformTop) < 10;
+  // Уменьшаем диапазон проверки до 5 пикселей для более точного определения
+  const verticalOverlap = Math.abs(playerBottom - platformTop) < 5;
 
   return horizontalOverlap && verticalOverlap && player.velocity.y < 0;
 };
