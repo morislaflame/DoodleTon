@@ -23,13 +23,25 @@ export class Platform {
     this.type = type;
     this.breakingAnimation = 0;
     this.isBreaking = false;
-    this.boost = Math.random() < 0.1 ? new Boost({
-      x: position.x + GAME_CONFIG.PLATFORM_WIDTH / 2 - 10,
-      y: position.y + GAME_CONFIG.PLATFORM_HEIGHT + 10
-    }) : null;
+    this.boost = null;
     
     if (type === 'moving') {
       this.speed = 2;
+    } else if (type === 'normal') {
+      const random = Math.random();
+      if (random < 0.03) {
+        this.boost = new Boost({
+          x: position.x + GAME_CONFIG.PLATFORM_WIDTH / 2 - 10,
+          y: position.y + GAME_CONFIG.PLATFORM_HEIGHT + 0
+        }, 'quadruple');
+      } else if (random < 0.13) { // 0.03 + 0.10
+        this.boost = new Boost({
+          x: position.x + GAME_CONFIG.PLATFORM_WIDTH / 2 - 10,
+          y: position.y + GAME_CONFIG.PLATFORM_HEIGHT + 0
+        }, 'double');
+      } else {
+        this.boost = null;
+      }
     }
   }
 

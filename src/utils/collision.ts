@@ -33,7 +33,7 @@ export const handlePlatformCollision = (
   
   if (platform.boost && !platform.boost.isCollected && checkBoostCollision(player, platform.boost)) {
     platform.boost.collect();
-    newVelocityY *= 4;
+    newVelocityY *= platform.boost.getBoostMultiplier();
   }
 
   switch (platform.type) {

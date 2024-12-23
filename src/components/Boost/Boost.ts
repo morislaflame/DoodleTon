@@ -1,28 +1,30 @@
 import { Position } from '../../types';
 import { GAME_CONFIG } from '../../utils/constants';
+import { BoostType } from '../../types';
 
 export class Boost {
   position: Position;
   width: number;
   height: number;
   isCollected: boolean;
+  type: BoostType;
   private animationFrame: number;
 
-  constructor(position: Position) {
+  constructor(position: Position, type: BoostType) {
     this.position = position;
     this.width = 20;
     this.height = 20;
     this.isCollected = false;
     this.animationFrame = 0;
+    this.type = type;
   }
 
   draw(ctx: CanvasRenderingContext2D) {
     if (this.isCollected) return;
 
-    // Анимация парения
     const yOffset = Math.sin(this.animationFrame / 10) * 5;
     
-    ctx.fillStyle = '#ffd700';
+    ctx.fillStyle = this.type === 'double' ? '#ffd700' : '#ff4500';
     ctx.beginPath();
     ctx.moveTo(
       this.position.x + this.width / 2,
@@ -50,5 +52,9 @@ export class Boost {
 
   collect() {
     this.isCollected = true;
+  }
+
+  getBoostMultiplier(): number {
+    return this.type === 'double' ? 2 : 4;
   }
 }

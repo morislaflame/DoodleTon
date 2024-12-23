@@ -17,3 +17,5 @@ export interface Position {
     width: number;
     height: number;
   }
+
+  export type BoostType = 'double' | 'quadruple';
