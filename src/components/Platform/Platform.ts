@@ -1,5 +1,6 @@
 import { Position } from '../../types';
 import { GAME_CONFIG } from '../../utils/constants';
+import { Boost } from '../Boost/Boost';
 
 export type PlatformType = 'normal' | 'moving' | 'breaking';
 
@@ -12,6 +13,7 @@ export class Platform {
   speed?: number; // Для движущихся платформ
   private breakingAnimation: number;
   private isBreaking: boolean;
+  boost: Boost | null;
 
   constructor(id: number, position: Position, type: PlatformType = 'normal') {
     this.id = id;
@@ -21,6 +23,10 @@ export class Platform {
     this.type = type;
     this.breakingAnimation = 0;
     this.isBreaking = false;
+    this.boost = Math.random() < 0.1 ? new Boost({
+      x: position.x + GAME_CONFIG.PLATFORM_WIDTH / 2 - 10,
+      y: position.y + GAME_CONFIG.PLATFORM_HEIGHT + 10
+    }) : null;
     
     if (type === 'moving') {
       this.speed = 2;
@@ -49,6 +55,10 @@ export class Platform {
         this.height
       );
     }
+
+    if (this.boost) {
+      this.boost.draw(ctx);
+    }
   }
 
   update(deltaTime: number) {
@@ -64,6 +74,10 @@ export class Platform {
 
     if (this.type === 'breaking' && this.isBreaking) {
       this.breakingAnimation += deltaTime / 50;
+    }
+
+    if (this.boost) {
+      this.boost.update();
     }
   }
 

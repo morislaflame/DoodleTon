@@ -1,6 +1,7 @@
 import { Player } from '../components/Player/Player';
 import { Platform } from '../components/Platform/Platform';
 import { GAME_CONFIG } from './constants';
+import { Boost } from '../components/Boost/Boost';
 
 // Проверка столкновения игрока с платформой
 export const checkPlatformCollision = (player: Player, platform: Platform): boolean => {
@@ -25,16 +26,23 @@ export const checkPlatformCollision = (player: Player, platform: Platform): bool
 
 // Обработка столкновения с платформой разного типа
 export const handlePlatformCollision = (
-  _player: Player,
+  player: Player,
   platform: Platform
 ): { newVelocityY: number; shouldBreak: boolean } => {
+  let newVelocityY = GAME_CONFIG.JUMP_FORCE;
+  
+  if (platform.boost && !platform.boost.isCollected && checkBoostCollision(player, platform.boost)) {
+    platform.boost.collect();
+    newVelocityY *= 4;
+  }
+
   switch (platform.type) {
     case 'breaking':
-      return { newVelocityY: GAME_CONFIG.JUMP_FORCE * 0.7, shouldBreak: true };
+      return { newVelocityY: newVelocityY * 0.7, shouldBreak: true };
     case 'moving':
-      return { newVelocityY: GAME_CONFIG.JUMP_FORCE * 1.2, shouldBreak: false };
+      return { newVelocityY: newVelocityY * 1.2, shouldBreak: false };
     default:
-      return { newVelocityY: GAME_CONFIG.JUMP_FORCE, shouldBreak: false };
+      return { newVelocityY, shouldBreak: false };
   }
 };
 
@@ -43,4 +51,25 @@ export const checkBoundaryCollision = (position: number, boundary: number): numb
   if (position < 0) return boundary;
   if (position > boundary) return 0;
   return position;
+};
+
+export const checkBoostCollision = (player: Player, boost: Boost): boolean => {
+  if (boost.isCollected) return false;
+
+  const playerLeft = player.position.x;
+  const playerRight = player.position.x + player.width;
+  const boostLeft = boost.position.x;
+  const boostRight = boost.position.x + boost.width;
+
+  const playerBottom = player.position.y;
+  const playerTop = player.position.y + player.height;
+  const boostBottom = boost.position.y;
+  const boostTop = boost.position.y + boost.height;
+
+  return (
+    playerRight > boostLeft &&
+    playerLeft < boostRight &&
+    playerTop > boostBottom &&
+    playerBottom < boostTop
+  );
 };
