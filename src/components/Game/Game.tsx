@@ -42,14 +42,41 @@ const Game: React.FC = () => {
     setPlatforms(newPlatforms);
   }, []);
 
-  // Функция для генерации новой платформы
+  const calculatePlatformGap = useCallback((height: number) => {
+    // Начальный разброс
+    const minGap = 30;
+    const maxGap = 100;
+    
+    // Увеличиваем разброс с высотой
+    const heightFactor = Math.min(height / 10000, 1); // Максимальный эффект на высоте 10000
+    const currentMinGap = minGap + (heightFactor * 20); // Минимальный разрыв увеличивается до 50
+    const currentMaxGap = maxGap + (heightFactor * 50); // Максимальный разрыв увеличивается до 150
+    
+    // Проверяем, чтобы разрыв не превышал максимальную высоту прыжка
+    const maxJumpHeight = (GAME_CONFIG.JUMP_FORCE * GAME_CONFIG.JUMP_FORCE) / (2 * GAME_CONFIG.GRAVITY);
+    const safeMaxGap = Math.min(currentMaxGap, maxJumpHeight * 0.7); // Уменьшаем до 70% от максимальной высоты прыжка
+    
+    return currentMinGap + Math.random() * (safeMaxGap - currentMinGap);
+  }, []);
+
+  // Обновляем функцию генерации новых платформ
   const generatePlatform = useCallback((yPosition: number) => {
     const platformType = Math.random();
     let type: 'normal' | 'moving' | 'breaking';
     
-    if (platformType < 0.7) {
+    // Увеличиваем шанс появления специальных платформ с высотой
+    const heightFactor = Math.min(yPosition / 10000, 1);
+    
+    // Интерполируем шансы между начальными и максимальными значениями
+    const normalChance = GAME_CONFIG.PLATFORM_CHANCES.INITIAL.NORMAL - 
+      (GAME_CONFIG.PLATFORM_CHANCES.INITIAL.NORMAL - GAME_CONFIG.PLATFORM_CHANCES.MAX_HEIGHT_FACTOR.NORMAL) * heightFactor;
+    
+    const movingChance = GAME_CONFIG.PLATFORM_CHANCES.INITIAL.MOVING + 
+      (GAME_CONFIG.PLATFORM_CHANCES.MAX_HEIGHT_FACTOR.MOVING - GAME_CONFIG.PLATFORM_CHANCES.INITIAL.MOVING) * heightFactor;
+    
+    if (platformType < normalChance) {
       type = 'normal';
-    } else if (platformType < 0.85) {
+    } else if (platformType < normalChance + movingChance) {
       type = 'moving';
     } else {
       type = 'breaking';
@@ -159,8 +186,12 @@ const Game: React.FC = () => {
     const highestPlatform = Math.max(...platforms.map(p => p.position.y));
     if (player.position.y + GAME_CONFIG.GAME_HEIGHT > highestPlatform) {
       const newPlatforms = [...platforms];
+      let nextY = highestPlatform;
+      
       for (let i = 0; i < 3; i++) {
-        newPlatforms.push(generatePlatform(highestPlatform + (i + 1) * 50));
+        const gap = calculatePlatformGap(nextY);
+        nextY += gap;
+        newPlatforms.push(generatePlatform(nextY));
       }
       setPlatforms(newPlatforms);
     }
