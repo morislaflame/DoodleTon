@@ -33,17 +33,11 @@ export const handlePlatformCollision = (
 ): { newVelocityY: number; shouldBreak: boolean } => {
   let newVelocityY = GAME_CONFIG.JUMP_FORCE;
   
-  if (platform.boost && !platform.boost.isCollected && checkBoostCollision(player, platform.boost)) {
+  if (platform.boost && !platform.boost.isCollected && 
+      platform.boost.type !== 'rapidfire' && platform.boost.type !== 'autofire' && 
+      checkBoostCollision(player, platform.boost)) {
     platform.boost.collect();
-    if (platform.boost.type === 'rapidfire') {
-      player.activateRapidFire();
-      newVelocityY *= 1.2; // Небольшой дополнительный прыжок
-    } else if (platform.boost.type === 'autofire') {
-      player.activateAutoFire();
-      newVelocityY *= 1.3; // Больший прыжок для autofire
-    } else {
-      newVelocityY *= platform.boost.getBoostMultiplier();
-    }
+    newVelocityY *= platform.boost.getBoostMultiplier();
   }
 
   switch (platform.type) {
@@ -126,3 +120,25 @@ export const checkBulletEnemyCollision = (bullet: Bullet, enemy: Enemy): boolean
       bulletBottom < enemyTop
     );
   };
+
+export const checkShootingBoostCollision = (player: Player, boost: Boost): boolean => {
+  if (boost.isCollected) return false;
+  if (boost.type !== 'rapidfire' && boost.type !== 'autofire') return false;
+
+  const playerLeft = player.position.x;
+  const playerRight = player.position.x + player.width;
+  const boostLeft = boost.position.x;
+  const boostRight = boost.position.x + boost.width;
+
+  const playerBottom = player.position.y;
+  const playerTop = player.position.y + player.height;
+  const boostBottom = boost.position.y;
+  const boostTop = boost.position.y + boost.height;
+
+  return (
+    playerRight > boostLeft &&
+    playerLeft < boostRight &&
+    playerTop > boostBottom &&
+    playerBottom < boostTop
+  );
+};

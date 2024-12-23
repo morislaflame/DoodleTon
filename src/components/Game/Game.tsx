@@ -4,7 +4,7 @@ import { Platform } from '../Platform/Platform';
 import { GameOver } from '../GameOver/GameOver';
 import { GAME_CONFIG } from '../../utils/constants';
 import { useKeyPress } from '../../hooks/useKeyPress';
-import { checkBulletEnemyCollision, checkPlatformCollision, handlePlatformCollision } from '../../utils/collision';
+import { checkBulletEnemyCollision, checkPlatformCollision, checkShootingBoostCollision, handlePlatformCollision } from '../../utils/collision';
 import { useGameLoop } from '../../hooks/useGameLoop';
 import './Game.styles.css';
 import { Enemy } from '../Enemy/Enemy';
@@ -373,6 +373,21 @@ const Game: React.FC = () => {
       }
 
     player.updateBoosts(); // Обновляем состояние бустов
+
+    // Проверяем столкновения с бустами стрельбы
+    platforms.forEach(platform => {
+      if (platform.boost && 
+          (platform.boost.type === 'rapidfire' || platform.boost.type === 'autofire') && 
+          !platform.boost.isCollected && 
+          checkShootingBoostCollision(player, platform.boost)) {
+        platform.boost.collect();
+        if (platform.boost.type === 'rapidfire') {
+          player.activateRapidFire();
+        } else if (platform.boost.type === 'autofire') {
+          player.activateAutoFire();
+        }
+      }
+    });
 
     draw(ctx);
   }, [platforms, leftPressed, rightPressed, draw, generateInitialPlatforms, player, gameOver, cameraOffset, maxHeight, enemies, bullets]);
