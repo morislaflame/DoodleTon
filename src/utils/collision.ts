@@ -75,7 +75,7 @@ export const checkBoostCollision = (player: Player, boost: Boost): boolean => {
   );
 };
 
-export const checkEnemyCollision = (player: Player, enemy: Enemy): boolean => {
+export const checkEnemyCollision = (player: Player, enemy: Enemy): { collision: boolean, fromTop: boolean } => {
   const playerLeft = player.position.x;
   const playerRight = player.position.x + player.width;
   const enemyLeft = enemy.position.x;
@@ -85,11 +85,15 @@ export const checkEnemyCollision = (player: Player, enemy: Enemy): boolean => {
   const playerTop = player.position.y + player.height;
   const enemyBottom = enemy.position.y;
   const enemyTop = enemy.position.y + enemy.height;
+  const collision = playerRight > enemyLeft &&
+  playerLeft < enemyRight &&
+  playerTop > enemyBottom &&
+  playerBottom < enemyTop;
 
-  return (
-    playerRight > enemyLeft &&
-    playerLeft < enemyRight &&
-    playerTop > enemyBottom &&
-    playerBottom < enemyTop
-  );
+// Проверяем, падает ли игрок сверху на врага
+const fromTop = collision && 
+  player.velocity.y < 0 && 
+  Math.abs(playerBottom - enemyTop) < 10;
+
+return { collision, fromTop };
 };

@@ -161,10 +161,11 @@ const Game: React.FC = () => {
 
   // Добавляем функцию генерации врагов
   const generateEnemy = useCallback((yPosition: number) => {
+    const type = Math.random() < 0.5 ? 'static' : 'moving';
     return new Enemy({
       x: Math.random() * (GAME_CONFIG.GAME_WIDTH - 30),
       y: yPosition
-    });
+    }, type);
   }, []);
 
   // Отрисовка на canvas
@@ -263,21 +264,35 @@ const Game: React.FC = () => {
         setScore(prev => prev + (newHeight - Math.floor(maxHeight)));
         
         // Генерируем врагов после высоты 3000
-        if (newHeight > 3000 && newHeight % 500 < 1) {
-          if (Math.random() < 1) { // Возвращаем шанс к 2%
-            const newEnemy = generateEnemy(player.position.y + GAME_CONFIG.GAME_HEIGHT);
-            setEnemies(prev => [...prev, newEnemy]);
-          }
+        if (newHeight > 3000) {
+            const lastCheckpoint = Math.floor(maxHeight / 500) * 500;
+            const newCheckpoint = Math.floor(newHeight / 500) * 500;
+            
+            if (newCheckpoint > lastCheckpoint) {
+              if (Math.random() < 0.2) { // Возвращаем шанс к 2%
+                const newEnemy = generateEnemy(player.position.y + GAME_CONFIG.GAME_HEIGHT);
+                setEnemies(prev => [...prev, newEnemy]);
+              }
+            }
         }
       }
     }
 
-    // Обновляем и проверяем столкновени�� с врагами
+    // Обновляем и проверяем столкновения с врагами
     enemies.forEach(enemy => {
       enemy.update();
-      if (checkEnemyCollision(player, enemy)) {
-        setGameOver(true);
-        return;
+      const { collision, fromTop } = checkEnemyCollision(player, enemy);
+      
+      if (collision) {
+        if (fromTop) {
+          // Игрок прыгнул на врага
+          player.jump(GAME_CONFIG.JUMP_FORCE * 1.1);
+          setEnemies(prev => prev.filter(e => e !== enemy));
+        } else {
+          // Игрок столкнулся с врагом
+          setGameOver(true);
+          return;
+        }
       }
     });
 
