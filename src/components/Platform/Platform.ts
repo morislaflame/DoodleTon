@@ -27,7 +27,7 @@ export class Platform {
     
     if (type === 'moving') {
       this.speed = 2;
-    } else if (type === 'normal') {
+    } else if (type === 'normal' && position.y > 500) {
       const random = Math.random();
       if (random < 0.03) {
         this.boost = new Boost({
@@ -39,8 +39,6 @@ export class Platform {
           x: position.x + GAME_CONFIG.PLATFORM_WIDTH / 2 - 10,
           y: position.y + GAME_CONFIG.PLATFORM_HEIGHT + 0
         }, 'double');
-      } else {
-        this.boost = null;
       }
     }
   }

@@ -23,22 +23,34 @@ const Game: React.FC = () => {
 
   // Генерация начальных платформ
   const generateInitialPlatforms = useCallback(() => {
+    const maxJumpHeight = (GAME_CONFIG.JUMP_FORCE * GAME_CONFIG.JUMP_FORCE) / (2 * GAME_CONFIG.GRAVITY);
+    const minBoostGap = maxJumpHeight * 0.7;
     const newPlatforms: Platform[] = [];
+    let previousHadBoost = false;
+    
     newPlatforms.push(new Platform(0, {
       x: GAME_CONFIG.GAME_WIDTH / 2 - GAME_CONFIG.PLATFORM_WIDTH / 2,
       y: 50
     }));
 
-    // Генерируем остальные платформы
     for (let i = 1; i < GAME_CONFIG.PLATFORM_COUNT; i++) {
-      newPlatforms.push(new Platform(
+      let y = 50 + (GAME_CONFIG.GAME_HEIGHT / (GAME_CONFIG.PLATFORM_COUNT + 2)) * i;
+      
+      if (previousHadBoost) {
+        y += minBoostGap;
+      }
+      
+      const platform = new Platform(
         i,
         {
           x: Math.random() * (GAME_CONFIG.GAME_WIDTH - GAME_CONFIG.PLATFORM_WIDTH),
-          y: 50 + (GAME_CONFIG.GAME_HEIGHT / (GAME_CONFIG.PLATFORM_COUNT + 2)) * i
+          y: y
         },
         Math.random() < 0.8 ? 'normal' : 'moving'
-      ));
+      );
+      
+      previousHadBoost = platform.boost !== null;
+      newPlatforms.push(platform);
     }
     setPlatforms(newPlatforms);
   }, []);
@@ -98,13 +110,17 @@ const Game: React.FC = () => {
     let nextY = startY;
     let previousWasBreaking = false;
 
-    for (let i = 0; i < count; i++) {
-      const gap = calculatePlatformGap(nextY);
-      nextY += gap;
+    const maxJumpHeight = (GAME_CONFIG.JUMP_FORCE * GAME_CONFIG.JUMP_FORCE) / (2 * GAME_CONFIG.GRAVITY);
+    const minBoostGap = maxJumpHeight * 0.7;
 
+    for (let i = 0; i < count; i++) {
+      // Вычисляем разрыв для текущей платформы
+      const gap = calculatePlatformGap(nextY);
+      nextY += gap; // Обновляем nextY до создания платформы
+
+      // Создаем платформу
       let platform: Platform;
       if (previousWasBreaking) {
-        // После ломающейся платформы генерируем обычную платформу рядом
         platform = new Platform(
           Date.now() + i,
           {
@@ -117,6 +133,11 @@ const Game: React.FC = () => {
       } else {
         platform = generatePlatform(nextY);
         previousWasBreaking = platform.type === 'breaking';
+      }
+      
+      // Если текущая платформа имеет буст, увеличиваем разрыв для следующей
+      if (platform.boost !== null) {
+        nextY += Math.max(0, minBoostGap - gap);
       }
       
       platforms.push(platform);
