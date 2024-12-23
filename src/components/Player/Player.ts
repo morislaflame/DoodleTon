@@ -85,6 +85,10 @@ export class Player {
       y: 0
     };
     this.isJumping = false;
+    this.rapidFireActive = false;
+    this.rapidFireEndTime = null;
+    this.autoFireActive = false;
+    this.autoFireEndTime = null;
   }
 
   activateRapidFire() {

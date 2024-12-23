@@ -31,7 +31,7 @@ const Game: React.FC = () => {
 
   const handleShooting = useCallback(() => {
     const currentTime = Date.now();
-    const shootingDelay = player.rapidFireActive ? 200 : 500; // Уменьшаем задержку при активном бусте
+    const shootingDelay = (player.rapidFireActive || player.autoFireActive) ? 200 : 500;
     
     if (currentTime - lastShotTime.current > shootingDelay) {
       const bullet = new Bullet({
@@ -220,6 +220,10 @@ const Game: React.FC = () => {
     if (player.rapidFireActive && player.rapidFireEndTime) {
       const timeLeft = Math.ceil((player.rapidFireEndTime - Date.now()) / 1000);
       ctx.fillText(`Rapid Fire: ${timeLeft}s`, 10, 60);
+    }
+    if (player.autoFireActive && player.autoFireEndTime) {
+      const timeLeft = Math.ceil((player.autoFireEndTime - Date.now()) / 1000);
+      ctx.fillText(`Auto Fire: ${timeLeft}s`, 10, 90);
     }
   }, [player, platforms, score, gameOver, cameraOffset, enemies, bullets]);
 
