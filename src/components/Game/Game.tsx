@@ -44,13 +44,24 @@ const Game: React.FC = () => {
 
   // Функция для генерации новой платформы
   const generatePlatform = useCallback((yPosition: number) => {
+    const platformType = Math.random();
+    let type: 'normal' | 'moving' | 'breaking';
+    
+    if (platformType < 0.7) {
+      type = 'normal';
+    } else if (platformType < 0.85) {
+      type = 'moving';
+    } else {
+      type = 'breaking';
+    }
+  
     return new Platform(
-      Date.now(), // уникальный id
+      Date.now(),
       {
         x: Math.random() * (GAME_CONFIG.GAME_WIDTH - GAME_CONFIG.PLATFORM_WIDTH),
         y: yPosition
       },
-      Math.random() < 0.8 ? 'normal' : 'moving'
+      type
     );
   }, []);
 
@@ -106,7 +117,7 @@ const Game: React.FC = () => {
 
     player.update(deltaTime, leftPressed, rightPressed);
 
-    // Обновляем смещение камеры только когда игрок поднимаетс�� выше
+    // Обновляем смещение камеры только когда игрок поднимаетс выше
     const targetCameraOffset = player.position.y - GAME_CONFIG.GAME_HEIGHT / 2;
     if (targetCameraOffset > cameraOffset) {
       setCameraOffset(targetCameraOffset);
@@ -131,13 +142,18 @@ const Game: React.FC = () => {
       if (collision) {
         const { newVelocityY, shouldBreak } = handlePlatformCollision(player, platform);
         player.jump(newVelocityY);
-        player.isJumping = false; // Сбрасываем флаг прыжка при столкновении
+        player.isJumping = false;
+        
         if (shouldBreak) {
-          setPlatforms(prev => prev.filter(p => p.id !== platform.id));
+          platform.startBreaking();
         }
+        
         setScore(prev => prev + 10);
       }
     });
+
+    // Удаляем платформы, которые полностью разрушились
+    setPlatforms(prev => prev.filter(platform => !platform.shouldBeRemoved()));
 
     // Генерируем новые платформы, если игрок поднялся достаточно высоко
     const highestPlatform = Math.max(...platforms.map(p => p.position.y));

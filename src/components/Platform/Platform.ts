@@ -10,6 +10,8 @@ export class Platform {
   height: number;
   type: PlatformType;
   speed?: number; // Для движущихся платформ
+  private breakingAnimation: number;
+  private isBreaking: boolean;
 
   constructor(id: number, position: Position, type: PlatformType = 'normal') {
     this.id = id;
@@ -17,6 +19,8 @@ export class Platform {
     this.width = GAME_CONFIG.PLATFORM_WIDTH;
     this.height = GAME_CONFIG.PLATFORM_HEIGHT;
     this.type = type;
+    this.breakingAnimation = 0;
+    this.isBreaking = false;
     
     if (type === 'moving') {
       this.speed = 2;
@@ -25,12 +29,26 @@ export class Platform {
 
   draw(ctx: CanvasRenderingContext2D) {
     ctx.fillStyle = this.getColor();
-    ctx.fillRect(
-      this.position.x,
-      GAME_CONFIG.GAME_HEIGHT - this.position.y,
-      this.width,
-      this.height
-    );
+    
+    if (this.type === 'breaking' && this.isBreaking) {
+      // Анимация разрушения
+      const breakingWidth = this.width * (1 - this.breakingAnimation / 10);
+      const breakingX = this.position.x + (this.width - breakingWidth) / 2;
+      
+      ctx.fillRect(
+        breakingX,
+        GAME_CONFIG.GAME_HEIGHT - this.position.y,
+        breakingWidth,
+        this.height
+      );
+    } else {
+      ctx.fillRect(
+        this.position.x,
+        GAME_CONFIG.GAME_HEIGHT - this.position.y,
+        this.width,
+        this.height
+      );
+    }
   }
 
   update(deltaTime: number) {
@@ -43,6 +61,20 @@ export class Platform {
         this.speed = Math.abs(this.speed);
       }
     }
+
+    if (this.type === 'breaking' && this.isBreaking) {
+      this.breakingAnimation += deltaTime / 50;
+    }
+  }
+
+  startBreaking() {
+    if (this.type === 'breaking') {
+      this.isBreaking = true;
+    }
+  }
+
+  shouldBeRemoved(): boolean {
+    return this.type === 'breaking' && this.breakingAnimation >= 10;
   }
 
   private getColor(): string {
@@ -50,7 +82,7 @@ export class Platform {
       case 'moving':
         return '#7fb2e5';
       case 'breaking':
-        return '#e57f7f';
+        return this.isBreaking ? '#ff6b6b' : '#e57f7f';
       default:
         return '#95c471';
     }
