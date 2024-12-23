@@ -1,9 +1,9 @@
 import { Player } from '../components/Player/Player';
 import { Platform } from '../components/Platform/Platform';
-import { GAME_CONFIG } from './constants';
 import { Boost } from '../components/Boost/Boost';
 import { Enemy } from '../components/Enemy/Enemy';
 import { Bullet } from '../components/Bullet/Bullet';
+import { GAME_CONFIG } from './constants';
 
 // Проверка столкновения игрока с платформой
 export const checkPlatformCollision = (player: Player, platform: Platform): boolean => {
