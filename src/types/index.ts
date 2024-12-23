@@ -18,4 +18,4 @@ export interface Position {
     height: number;
   }
 
-  export type BoostType = 'double' | 'quadruple';
+  export type BoostType = 'double' | 'quadruple' | 'rapidfire';

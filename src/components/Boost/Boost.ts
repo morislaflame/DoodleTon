@@ -24,7 +24,18 @@ export class Boost {
 
     const yOffset = Math.sin(this.animationFrame / 10) * 5;
     
-    ctx.fillStyle = this.type === 'double' ? '#ffd700' : '#ff4500';
+    switch(this.type) {
+      case 'double':
+        ctx.fillStyle = '#ffd700';
+        break;
+      case 'quadruple':
+        ctx.fillStyle = '#ff4500';
+        break;
+      case 'rapidfire':
+        ctx.fillStyle = '#00ff00';
+        break;
+    }
+    
     ctx.beginPath();
     ctx.moveTo(
       this.position.x + this.width / 2,
@@ -55,6 +66,13 @@ export class Boost {
   }
 
   getBoostMultiplier(): number {
-    return this.type === 'double' ? 2 : 4;
+    switch(this.type) {
+      case 'double':
+        return 2;
+      case 'quadruple':
+        return 4;
+      case 'rapidfire':
+        return 1;
+    }
   }
 }

@@ -31,8 +31,9 @@ const Game: React.FC = () => {
 
   const handleShooting = useCallback(() => {
     const currentTime = Date.now();
-    // Ограничиваем частоту стрельбы (раз в 500мс)
-    if (currentTime - lastShotTime.current > 200) {
+    const shootingDelay = player.rapidFireActive ? 200 : 500; // Уменьшаем задержку при активном бусте
+    
+    if (currentTime - lastShotTime.current > shootingDelay) {
       const bullet = new Bullet({
         x: player.position.x + player.width / 2,
         y: player.position.y + player.height
@@ -214,6 +215,12 @@ const Game: React.FC = () => {
     ctx.fillStyle = '#000';
     ctx.font = '20px Arial';
     ctx.fillText(`Score: ${score}`, 10, 30);
+    
+    // Отображаем состояние буста стрельбы
+    if (player.rapidFireActive && player.rapidFireEndTime) {
+      const timeLeft = Math.ceil((player.rapidFireEndTime - Date.now()) / 1000);
+      ctx.fillText(`Rapid Fire: ${timeLeft}s`, 10, 60);
+    }
   }, [player, platforms, score, gameOver, cameraOffset, enemies, bullets]);
 
   const resetGame = useCallback(() => {
@@ -360,6 +367,8 @@ const Game: React.FC = () => {
       if (upPressed) {
         handleShooting();
       }
+
+    player.updateBoosts(); // Обновляем состояние бустов
 
     draw(ctx);
   }, [platforms, leftPressed, rightPressed, draw, generateInitialPlatforms, player, gameOver, cameraOffset, maxHeight, enemies, bullets]);

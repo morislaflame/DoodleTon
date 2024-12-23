@@ -10,7 +10,7 @@ export class Platform {
   width: number;
   height: number;
   type: PlatformType;
-  speed?: number; // Для движущихся платформ
+  speed?: number;
   private breakingAnimation: number;
   private isBreaking: boolean;
   boost: Boost | null;
@@ -39,6 +39,11 @@ export class Platform {
           x: position.x + GAME_CONFIG.PLATFORM_WIDTH / 2 - 10,
           y: position.y + GAME_CONFIG.PLATFORM_HEIGHT + 0
         }, 'double');
+      } else if (random < 0.18) { // 0.13 + 0.05
+        this.boost = new Boost({
+          x: position.x + GAME_CONFIG.PLATFORM_WIDTH / 2 - 10,
+          y: position.y + GAME_CONFIG.PLATFORM_HEIGHT + 0
+        }, 'rapidfire');
       }
     }
   }
@@ -47,7 +52,6 @@ export class Platform {
     ctx.fillStyle = this.getColor();
     
     if (this.type === 'breaking' && this.isBreaking) {
-      // Анимация разрушения
       const breakingWidth = this.width * (1 - this.breakingAnimation / 10);
       const breakingX = this.position.x + (this.width - breakingWidth) / 2;
       
@@ -66,7 +70,8 @@ export class Platform {
       );
     }
 
-    if (this.boost) {
+    if (this.boost && !this.boost.isCollected) {
+      this.boost.update();
       this.boost.draw(ctx);
     }
   }
@@ -84,10 +89,6 @@ export class Platform {
 
     if (this.type === 'breaking' && this.isBreaking) {
       this.breakingAnimation += deltaTime / 50;
-    }
-
-    if (this.boost) {
-      this.boost.update();
     }
   }
 

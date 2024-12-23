@@ -26,7 +26,7 @@ export const checkPlatformCollision = (player: Player, platform: Platform): bool
   );
 };
 
-// Обработка столкновения с платформой разного типа
+// Обработка столкновения с п��атформой разного типа
 export const handlePlatformCollision = (
   player: Player,
   platform: Platform
@@ -35,7 +35,12 @@ export const handlePlatformCollision = (
   
   if (platform.boost && !platform.boost.isCollected && checkBoostCollision(player, platform.boost)) {
     platform.boost.collect();
-    newVelocityY *= platform.boost.getBoostMultiplier();
+    if (platform.boost.type === 'rapidfire') {
+      player.activateRapidFire();
+      newVelocityY *= 1.2; // Небольшой дополнительный прыжок
+    } else {
+      newVelocityY *= platform.boost.getBoostMultiplier();
+    }
   }
 
   switch (platform.type) {
