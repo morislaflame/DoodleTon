@@ -7,6 +7,8 @@ import { useKeyPress } from '../../hooks/useKeyPress';
 import { checkPlatformCollision, handlePlatformCollision } from '../../utils/collision';
 import { useGameLoop } from '../../hooks/useGameLoop';
 import './Game.styles.css';
+import { Enemy } from '../Enemy/Enemy';
+import { checkEnemyCollision } from '../../utils/collision';
 
 const Game: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -17,6 +19,7 @@ const Game: React.FC = () => {
   const gameOverScreen = useRef<GameOver | null>(null);
   const [cameraOffset, setCameraOffset] = useState(0);
   const [maxHeight, setMaxHeight] = useState(0);
+  const [enemies, setEnemies] = useState<Enemy[]>([]);
   
   const leftPressed = useKeyPress('ArrowLeft');
   const rightPressed = useKeyPress('ArrowRight');
@@ -109,14 +112,23 @@ const Game: React.FC = () => {
     const platforms: Platform[] = [];
     let nextY = startY;
     let previousWasBreaking = false;
+    let previousY = startY;
 
     const maxJumpHeight = (GAME_CONFIG.JUMP_FORCE * GAME_CONFIG.JUMP_FORCE) / (2 * GAME_CONFIG.GRAVITY);
     const minBoostGap = maxJumpHeight * 0.7;
+    const minPlatformGap = 30;
 
     for (let i = 0; i < count; i++) {
-      // Вычисляем разрыв для текущей платформы
-      const gap = calculatePlatformGap(nextY);
-      nextY += gap; // Обновляем nextY до создания платформы
+      // Вычисляем базовый разрыв
+      let gap = calculatePlatformGap(nextY);
+      
+      // Проверяем минимальный разрыв от предыдущей платформы
+      if (nextY - previousY < minPlatformGap) {
+        gap = Math.max(gap, minPlatformGap);
+      }
+
+      // Обновляем nextY с учетом разрыва
+      nextY = previousY + gap;
 
       // Создаем платформу
       let platform: Platform;
@@ -135,16 +147,25 @@ const Game: React.FC = () => {
         previousWasBreaking = platform.type === 'breaking';
       }
       
-      // Если текущая платформа имеет буст, увеличиваем разрыв для следующей
+      // Если платформа имеет буст, увеличиваем разрыв для следующей
       if (platform.boost !== null) {
         nextY += Math.max(0, minBoostGap - gap);
       }
       
       platforms.push(platform);
+      previousY = nextY;
     }
 
     return platforms;
   }, [calculatePlatformGap, generatePlatform]);
+
+  // Добавляем функцию генерации врагов
+  const generateEnemy = useCallback((yPosition: number) => {
+    return new Enemy({
+      x: Math.random() * (GAME_CONFIG.GAME_WIDTH - 30),
+      y: yPosition
+    });
+  }, []);
 
   // Отрисовка на canvas
   const draw = useCallback((ctx: CanvasRenderingContext2D) => {
@@ -166,6 +187,7 @@ const Game: React.FC = () => {
     // Рисуем игровые объекты с учетом смещения
     player.draw(ctx);
     platforms.forEach(platform => platform.draw(ctx));
+    enemies.forEach(enemy => enemy.draw(ctx));
     
     ctx.restore();
     
@@ -173,7 +195,7 @@ const Game: React.FC = () => {
     ctx.fillStyle = '#000';
     ctx.font = '20px Arial';
     ctx.fillText(`Score: ${score}`, 10, 30);
-  }, [player, platforms, score, gameOver, cameraOffset]);
+  }, [player, platforms, score, gameOver, cameraOffset, enemies]);
 
   const resetGame = useCallback(() => {
     setGameOver(false);
@@ -183,6 +205,7 @@ const Game: React.FC = () => {
     player.reset();
     generateInitialPlatforms();
     gameOverScreen.current = null;
+    setEnemies([]);
   }, [generateInitialPlatforms, player]);
 
   const updateGame = useCallback((deltaTime: number) => {
@@ -234,13 +257,34 @@ const Game: React.FC = () => {
 
     // Обновляем максимальную высоту и очки реже
     if (player.position.y > maxHeight) {
-      // Округляем до целых чисел и обновляем только при существенном изменении
       const newHeight = Math.floor(player.position.y);
-      if (newHeight - maxHeight >= 1) { // Обновляем только при изменении на 1 или более единиц
+      if (newHeight - maxHeight >= 1) {
         setMaxHeight(newHeight);
         setScore(prev => prev + (newHeight - Math.floor(maxHeight)));
+        
+        // Генерируем врагов после высоты 3000
+        if (newHeight > 3000 && newHeight % 500 < 1) {
+          if (Math.random() < 1) { // Возвращаем шанс к 2%
+            const newEnemy = generateEnemy(player.position.y + GAME_CONFIG.GAME_HEIGHT);
+            setEnemies(prev => [...prev, newEnemy]);
+          }
+        }
       }
     }
+
+    // Обновляем и проверяем столкновени�� с врагами
+    enemies.forEach(enemy => {
+      enemy.update();
+      if (checkEnemyCollision(player, enemy)) {
+        setGameOver(true);
+        return;
+      }
+    });
+
+    // Удаляем врагов, которые ушли далеко вниз
+    setEnemies(prev => prev.filter(enemy => 
+      enemy.position.y > player.position.y - GAME_CONFIG.GAME_HEIGHT
+    ));
 
     // Удаляем платформы, которые полностью разрушились
     setPlatforms(prev => prev.filter(platform => !platform.shouldBeRemoved()));
@@ -261,7 +305,7 @@ const Game: React.FC = () => {
     ));
 
     draw(ctx);
-  }, [platforms, leftPressed, rightPressed, draw, generateInitialPlatforms, player, gameOver, cameraOffset, maxHeight]);
+  }, [platforms, leftPressed, rightPressed, draw, generateInitialPlatforms, player, gameOver, cameraOffset, maxHeight, enemies]);
 
   const handleCanvasClick = useCallback((event: React.MouseEvent<HTMLCanvasElement>) => {
     if (!gameOver || !gameOverScreen.current) return;

@@ -2,6 +2,7 @@ import { Player } from '../components/Player/Player';
 import { Platform } from '../components/Platform/Platform';
 import { GAME_CONFIG } from './constants';
 import { Boost } from '../components/Boost/Boost';
+import { Enemy } from '../components/Enemy/Enemy';
 
 // Проверка столкновения игрока с платформой
 export const checkPlatformCollision = (player: Player, platform: Platform): boolean => {
@@ -71,5 +72,24 @@ export const checkBoostCollision = (player: Player, boost: Boost): boolean => {
     playerLeft < boostRight &&
     playerTop > boostBottom &&
     playerBottom < boostTop
+  );
+};
+
+export const checkEnemyCollision = (player: Player, enemy: Enemy): boolean => {
+  const playerLeft = player.position.x;
+  const playerRight = player.position.x + player.width;
+  const enemyLeft = enemy.position.x;
+  const enemyRight = enemy.position.x + enemy.width;
+
+  const playerBottom = player.position.y;
+  const playerTop = player.position.y + player.height;
+  const enemyBottom = enemy.position.y;
+  const enemyTop = enemy.position.y + enemy.height;
+
+  return (
+    playerRight > enemyLeft &&
+    playerLeft < enemyRight &&
+    playerTop > enemyBottom &&
+    playerBottom < enemyTop
   );
 };
