@@ -4,7 +4,11 @@ import { GAME_CONFIG } from '../../utils/constants';
 export class Player {
   private static sprite: HTMLImageElement;
   private static isImageLoaded: boolean = false;
-  
+  private frameWidth: number = 100;
+  private frameHeight: number = 100;
+  private framesInRow: number = 9;
+  private framesInColumn: number = 7;
+
   position: Position;
   velocity: Position;
   width: number;
@@ -14,10 +18,10 @@ export class Player {
   rapidFireEndTime: number | null;
   autoFireActive: boolean;
   autoFireEndTime: number | null;
-  private frameWidth: number = 32;
-  private frameHeight: number = 32;
   private currentFrame: number = 0;
   private frameRow: number = 0;
+  private lastFrameUpdate: number = 0;
+  private frameUpdateInterval: number = 100; // Интервал обновления кадра в мс
 
   constructor() {
     this.position = {
@@ -36,15 +40,27 @@ export class Player {
     this.autoFireActive = false;
     this.autoFireEndTime = null;
 
-    // Загружаем спрайт только один раз
     if (!Player.sprite) {
+      console.log('Starting sprite load...', {
+        frameWidth: this.frameWidth,
+        frameHeight: this.frameHeight,
+        framesInRow: this.framesInRow,
+        framesInColumn: this.framesInColumn
+      });
       Player.sprite = new Image();
       Player.sprite.onload = () => {
         Player.isImageLoaded = true;
-        console.log('Sprite loaded successfully');
+        console.log('Sprite loaded successfully:', {
+          width: Player.sprite.width,
+          height: Player.sprite.height,
+          frameWidth: this.frameWidth,
+          frameHeight: this.frameHeight,
+          framesInRow: this.framesInRow,
+          framesInColumn: this.framesInColumn
+        });
       };
       Player.sprite.onerror = (e) => {
-        console.error('Error loading sprite:', e);
+        console.error('Sprite load error:', e);
       };
       Player.sprite.src = 'assets/Soldier.png';
     }
@@ -68,19 +84,28 @@ export class Player {
 
     // Определяем кадр анимации
     if (this.velocity.y > 0) {
-      this.frameRow = 3; // Прыжок вверх
+      this.frameRow = 3;
     } else if (this.velocity.y < 0) {
-      this.frameRow = 4; // Падение
+      this.frameRow = 4;
     } else if (this.velocity.x !== 0) {
-      this.frameRow = 2; // Движение
+      this.frameRow = 2;
+      this.updateAnimation();
     } else {
-      this.frameRow = 0; // Покой
+      this.frameRow = 0;
+      this.currentFrame = 0;
     }
 
     const drawX = this.position.x;
-    const drawY = GAME_CONFIG.GAME_HEIGHT - this.position.y;
+    const drawY = GAME_CONFIG.GAME_HEIGHT - this.position.y - this.height;
 
-    // Рисуем спрайт
+    // Увеличиваем размер спрайта
+    const scaleFactor = 6; // Увеличиваем в 1.8 раза
+    const scaledWidth = this.width * scaleFactor;
+    const scaledHeight = this.height * scaleFactor;
+    const offsetX = (scaledWidth - this.width) / 2;
+    const offsetY = (scaledHeight - this.height) / 2;
+
+    // Центрируем спрайт в прямоугольнике
     if (this.velocity.x >= 0) {
       ctx.drawImage(
         Player.sprite,
@@ -88,14 +113,14 @@ export class Player {
         this.frameRow * this.frameHeight,
         this.frameWidth,
         this.frameHeight,
-        drawX,
-        drawY - this.height,
-        this.width,
-        this.height
+        drawX - offsetX,
+        drawY - offsetY,
+        scaledWidth,
+        scaledHeight
       );
     } else {
       ctx.save();
-      ctx.translate(drawX + this.width, drawY - this.height);
+      ctx.translate(drawX, drawY - offsetY);
       ctx.scale(-1, 1);
       ctx.drawImage(
         Player.sprite,
@@ -103,24 +128,24 @@ export class Player {
         this.frameRow * this.frameHeight,
         this.frameWidth,
         this.frameHeight,
+        -scaledWidth + offsetX,
         0,
-        0,
-        this.width,
-        this.height
+        scaledWidth,
+        scaledHeight
       );
       ctx.restore();
     }
 
-    // Отладочная информация
-    if (this.position.y < GAME_CONFIG.GAME_HEIGHT + 100) {
-      console.log('Player position:', {
-        drawX,
-        drawY,
-        y: this.position.y,
-        height: this.height,
-        frameRow: this.frameRow,
-        currentFrame: this.currentFrame
-      });
+    // Отладочный прямоугольник
+    ctx.strokeStyle = 'red';
+    ctx.strokeRect(drawX, drawY, this.width, this.height);
+  }
+
+  private updateAnimation() {
+    const now = Date.now();
+    if (now - this.lastFrameUpdate >= this.frameUpdateInterval) {
+      this.currentFrame = (this.currentFrame + 1) % this.framesInRow;
+      this.lastFrameUpdate = now;
     }
   }
 
@@ -143,11 +168,6 @@ export class Player {
       this.position.x = GAME_CONFIG.GAME_WIDTH;
     } else if (this.position.x > GAME_CONFIG.GAME_WIDTH) {
       this.position.x = 0;
-    }
-
-    // Обновляем анимацию каждые 100мс
-    if (Date.now() % 100 < 16) {
-      this.currentFrame = (this.currentFrame + 1) % 8;
     }
   }
 

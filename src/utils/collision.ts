@@ -18,6 +18,15 @@ export const checkPlatformCollision = (player: Player, platform: Platform): bool
   const playerBottom = player.position.y;
   const platformTop = platform.position.y + platform.height;
 
+  if (Math.abs(playerBottom - platformTop) < 20) {
+    console.log('Near platform:', {
+      playerBottom,
+      platformTop,
+      diff: Math.abs(playerBottom - platformTop),
+      velocity: player.velocity.y
+    });
+  }
+
   return (
     playerRight > platformLeft &&
     playerLeft < platformRight &&
@@ -26,7 +35,7 @@ export const checkPlatformCollision = (player: Player, platform: Platform): bool
   );
 };
 
-// Обработка столкновения с п��атформой разного типа
+// Обработка столкновения с платформой разного типа
 export const handlePlatformCollision = (
   player: Player,
   platform: Platform
