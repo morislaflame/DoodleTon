@@ -34,6 +34,9 @@ export class Boost {
       case 'rapidfire':
         ctx.fillStyle = '#00ff00';
         break;
+      case 'autofire':
+        ctx.fillStyle = '#0000ff';
+        break;
     }
     
     ctx.beginPath();
@@ -72,6 +75,8 @@ export class Boost {
       case 'quadruple':
         return 4;
       case 'rapidfire':
+        return 1;
+      case 'autofire':
         return 1;
     }
   }

@@ -34,16 +34,21 @@ export class Platform {
           x: position.x + GAME_CONFIG.PLATFORM_WIDTH / 2 - 10,
           y: position.y + GAME_CONFIG.PLATFORM_HEIGHT + 0
         }, 'quadruple');
-      } else if (random < 0.13) { // 0.03 + 0.10
+      } else if (random < 0.13) {
         this.boost = new Boost({
           x: position.x + GAME_CONFIG.PLATFORM_WIDTH / 2 - 10,
           y: position.y + GAME_CONFIG.PLATFORM_HEIGHT + 0
         }, 'double');
-      } else if (random < 0.18) { // 0.13 + 0.05
+      } else if (random < 0.18) {
         this.boost = new Boost({
           x: position.x + GAME_CONFIG.PLATFORM_WIDTH / 2 - 10,
           y: position.y + GAME_CONFIG.PLATFORM_HEIGHT + 0
         }, 'rapidfire');
+      } else if (random < 0.20) {
+        this.boost = new Boost({
+          x: position.x + GAME_CONFIG.PLATFORM_WIDTH / 2 - 10,
+          y: position.y + GAME_CONFIG.PLATFORM_HEIGHT + 0
+        }, 'autofire');
       }
     }
   }

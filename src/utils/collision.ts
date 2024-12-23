@@ -38,6 +38,9 @@ export const handlePlatformCollision = (
     if (platform.boost.type === 'rapidfire') {
       player.activateRapidFire();
       newVelocityY *= 1.2; // Небольшой дополнительный прыжок
+    } else if (platform.boost.type === 'autofire') {
+      player.activateAutoFire();
+      newVelocityY *= 1.3; // Больший прыжок для autofire
     } else {
       newVelocityY *= platform.boost.getBoostMultiplier();
     }

@@ -364,7 +364,7 @@ const Game: React.FC = () => {
         });
       });
 
-      if (upPressed) {
+      if (upPressed || player.autoFireActive) {
         handleShooting();
       }
 

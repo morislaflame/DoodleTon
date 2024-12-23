@@ -9,6 +9,8 @@ export class Player {
   isJumping: boolean; // Добавляем флаг прыжка
   rapidFireActive: boolean;
   rapidFireEndTime: number | null;
+  autoFireActive: boolean;
+  autoFireEndTime: number | null;
 
   constructor() {
     this.position = {
@@ -24,6 +26,8 @@ export class Player {
     this.isJumping = false;
     this.rapidFireActive = false;
     this.rapidFireEndTime = null;
+    this.autoFireActive = false;
+    this.autoFireEndTime = null;
   }
 
   draw(ctx: CanvasRenderingContext2D) {
@@ -88,10 +92,19 @@ export class Player {
     this.rapidFireEndTime = Date.now() + 5000; // 5 секунд
   }
 
+  activateAutoFire() {
+    this.autoFireActive = true;
+    this.autoFireEndTime = Date.now() + 7000; // 7 секунд
+  }
+
   updateBoosts() {
     if (this.rapidFireEndTime && Date.now() > this.rapidFireEndTime) {
       this.rapidFireActive = false;
       this.rapidFireEndTime = null;
+    }
+    if (this.autoFireEndTime && Date.now() > this.autoFireEndTime) {
+      this.autoFireActive = false;
+      this.autoFireEndTime = null;
     }
   }
 }
