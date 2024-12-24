@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 export const useGyroscope = () => {
   const [isMovingLeft, setIsMovingLeft] = useState(false);
   const [isMovingRight, setIsMovingRight] = useState(false);
+  const [movementIntensity, setMovementIntensity] = useState(0);
   const lastY = useRef(0);
   const velocityY = useRef(0);
   
@@ -21,19 +22,16 @@ export const useGyroscope = () => {
         velocityY.current += (targetVelocity - velocityY.current) * velocitySmoothing;
         
         // Применяем сглаживание
-        const smoothingFactor = 0.1; // Уменьшили для большей плавности
+        const smoothingFactor = 0.1;
         const smoothedY = velocityY.current * smoothingFactor + lastY.current * (1 - smoothingFactor);
         lastY.current = smoothedY;
         
-        // Определяем пороговые значения для наклона
-        const threshold = 0.2; // Уменьшили порог
-        
-        // Инвертируем направление движения
-        setIsMovingLeft(smoothedY < -threshold);
-        setIsMovingRight(smoothedY > threshold);
+        // Определяем направление и интенсивность движения
+        setIsMovingLeft(smoothedY < 0);
+        setIsMovingRight(smoothedY > 0);
+        setMovementIntensity(Math.abs(smoothedY));
       };
 
-      // Запускаем проверку каждые 16мс (примерно 60fps)
       const interval = setInterval(handleOrientation, 16);
 
       return () => {
@@ -43,5 +41,9 @@ export const useGyroscope = () => {
     }
   }, []);
 
-  return { isMovingLeft, isMovingRight };
+  return { 
+    isMovingLeft, 
+    isMovingRight,
+    movementIntensity 
+  };
 };
