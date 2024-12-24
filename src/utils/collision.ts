@@ -34,10 +34,9 @@ export const handlePlatformCollision = (
   let newVelocityY = GAME_CONFIG.JUMP_FORCE;
   
   if (platform.boost && !platform.boost.isCollected) {
-    const isBoostCollision = platform.boost.type === 'rapidfire' || platform.boost.type === 'autofire'
-      ? checkShootingBoostCollision(player, platform.boost)
-      : checkBoostCollision(player, platform.boost);
-      
+    // Используем общую проверку коллизии для всех типов бустов
+    const isBoostCollision = checkBoostCollision(player, platform.boost);
+    
     if (isBoostCollision) {
       platform.boost.collect();
       if (platform.boost.type === 'rapidfire') {
@@ -127,25 +126,3 @@ export const checkBulletEnemyCollision = (bullet: Bullet, enemy: Enemy): boolean
       bulletBottom < enemyTop
     );
   };
-
-export const checkShootingBoostCollision = (player: Player, boost: Boost): boolean => {
-  if (boost.isCollected) return false;
-  if (boost.type !== 'rapidfire' && boost.type !== 'autofire') return false;
-
-  const playerLeft = player.position.x;
-  const playerRight = player.position.x + player.width;
-  const boostLeft = boost.position.x;
-  const boostRight = boost.position.x + boost.width;
-
-  // Используем ту же логику координат Y, что и для платформ
-  const playerBottom = player.position.y;
-  const boostTop = boost.position.y;
-
-  // Горизонтальное перекрытие
-  const horizontalOverlap = playerRight > boostLeft && playerLeft < boostRight;
-  
-  // Вертикальное перекрытие (используем тот же принцип, что и для платформ)
-  const verticalOverlap = Math.abs(playerBottom - boostTop) < 15;
-
-  return horizontalOverlap && verticalOverlap;
-};
