@@ -34,17 +34,24 @@ export const handlePlatformCollision = (
   let newVelocityY = GAME_CONFIG.JUMP_FORCE;
   
   if (platform.boost && !platform.boost.isCollected) {
-    // Используем общую проверку коллизии для всех типов бустов
-    const isBoostCollision = checkBoostCollision(player, platform.boost);
-    
-    if (isBoostCollision) {
-      platform.boost.collect();
-      if (platform.boost.type === 'rapidfire') {
-        player.activateRapidFire();
-      } else if (platform.boost.type === 'autofire') {
-        player.activateAutoFire();
-      } else {
+    if (platform.boost.type === 'double' || platform.boost.type === 'quadruple') {
+      // Для бустов прыжка используем старую логику
+      const isBoostCollision = checkBoostCollision(player, platform.boost);
+      if (isBoostCollision) {
+        platform.boost.collect();
         newVelocityY *= platform.boost.getBoostMultiplier();
+      }
+    } else if (platform.boost.type === 'rapidfire' || platform.boost.type === 'autofire') {
+      // Для бустов стрельбы проверяем оба типа коллизий
+      const isBoostCollision = checkBoostCollision(player, platform.boost) || 
+                              checkShootingBoostCollision(player, platform.boost);
+      if (isBoostCollision) {
+        platform.boost.collect();
+        if (platform.boost.type === 'rapidfire') {
+          player.activateRapidFire();
+        } else {
+          player.activateAutoFire();
+        }
       }
     }
   }
@@ -126,3 +133,24 @@ export const checkBulletEnemyCollision = (bullet: Bullet, enemy: Enemy): boolean
       bulletBottom < enemyTop
     );
   };
+export const checkShootingBoostCollision = (player: Player, boost: Boost): boolean => {
+  if (boost.isCollected) return false;
+  if (boost.type !== 'rapidfire' && boost.type !== 'autofire') return false;
+
+  const playerLeft = player.position.x;
+  const playerRight = player.position.x + player.width;
+  const playerTop = GAME_CONFIG.GAME_HEIGHT - player.position.y;
+  const playerBottom = GAME_CONFIG.GAME_HEIGHT - (player.position.y + player.height);
+
+  const boostLeft = boost.position.x;
+  const boostRight = boost.position.x + boost.width;
+  const boostTop = GAME_CONFIG.GAME_HEIGHT - boost.position.y;
+  const boostBottom = GAME_CONFIG.GAME_HEIGHT - (boost.position.y + boost.height);
+
+  return (
+    playerRight > boostLeft &&
+    playerLeft < boostRight &&
+    playerTop > boostBottom &&
+    playerBottom < boostTop
+  );
+};
