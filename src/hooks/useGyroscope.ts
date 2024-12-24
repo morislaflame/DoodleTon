@@ -21,7 +21,7 @@ export const useGyroscope = () => {
         velocityY.current += (targetVelocity - velocityY.current) * velocitySmoothing;
         
         // Применяем сглаживание
-        const smoothingFactor = 0.1;
+        const smoothingFactor = 0.5;
         const smoothedY = velocityY.current * smoothingFactor + lastY.current * (1 - smoothingFactor);
         lastY.current = smoothedY;
         
