@@ -23,6 +23,7 @@ const Game: React.FC = () => {
   const [maxHeight, setMaxHeight] = useState(0);
   const [enemies, setEnemies] = useState<Enemy[]>([]);
   const [bullets, setBullets] = useState<Bullet[]>([]);
+  const [isScreenPressed, setIsScreenPressed] = useState(false);
   
   const { isMovingLeft: gyroLeft, isMovingRight: gyroRight } = useGyroscope();
   
@@ -392,7 +393,7 @@ const Game: React.FC = () => {
         });
       });
 
-      if (upPressed || player.autoFireActive) {
+      if ((upPressed || player.autoFireActive || isScreenPressed) && !gameOver) {
         handleShooting();
       }
 
@@ -420,7 +421,7 @@ const Game: React.FC = () => {
 
 
     draw(ctx);
-  }, [platforms, leftPressed, rightPressed, draw, generateInitialPlatforms, player, gameOver, cameraOffset, maxHeight, enemies, bullets]);
+  }, [platforms, leftPressed, rightPressed, draw, generateInitialPlatforms, player, gameOver, cameraOffset, maxHeight, enemies, bullets, isScreenPressed]);
 
 const handleCanvasClick = useCallback((event: React.MouseEvent<HTMLCanvasElement>) => {
     if (gameOver) {
@@ -447,12 +448,23 @@ const handleCanvasClick = useCallback((event: React.MouseEvent<HTMLCanvasElement
     fps: 60,
   });
 
+  // Обработчики касания экрана
+  const handleTouchStart = useCallback(() => {
+    setIsScreenPressed(true);
+  }, []);
+
+  const handleTouchEnd = useCallback(() => {
+    setIsScreenPressed(false);
+  }, []);
+
   return (
     <canvas
       ref={canvasRef}
       width={GAME_CONFIG.GAME_WIDTH}
       height={GAME_CONFIG.GAME_HEIGHT}
       onClick={handleCanvasClick}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
       className="game-canvas"
     />
   );
