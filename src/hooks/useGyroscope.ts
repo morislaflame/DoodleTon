@@ -4,6 +4,7 @@ export const useGyroscope = () => {
   const [isMovingLeft, setIsMovingLeft] = useState(false);
   const [isMovingRight, setIsMovingRight] = useState(false);
   const lastY = useRef(0);
+  const velocityY = useRef(0);
   
   useEffect(() => {
     const tg = window.Telegram.WebApp;
@@ -14,13 +15,18 @@ export const useGyroscope = () => {
       const handleOrientation = () => {
         const y = tg.Gyroscope.y;
         
+        // Добавляем инерцию
+        const targetVelocity = y;
+        const velocitySmoothing = 0.1;
+        velocityY.current += (targetVelocity - velocityY.current) * velocitySmoothing;
+        
         // Применяем сглаживание
-        const smoothingFactor = 0.2;
-        const smoothedY = y * smoothingFactor + lastY.current * (1 - smoothingFactor);
+        const smoothingFactor = 0.1; // Уменьшили для большей плавности
+        const smoothedY = velocityY.current * smoothingFactor + lastY.current * (1 - smoothingFactor);
         lastY.current = smoothedY;
         
         // Определяем пороговые значения для наклона
-        const threshold = 0.2;
+        const threshold = 0.15; // Уменьшили порог
         
         // Инвертируем направление движения
         setIsMovingLeft(smoothedY < -threshold);

@@ -31,7 +31,6 @@ const Game: React.FC = () => {
   const upPressed = useKeyPress('ArrowUp');
   const lastShotTime = useRef(0);
 
-
   const handleShooting = useCallback(() => {
     const currentTime = Date.now();
     const shootingDelay = (player.rapidFireActive || player.autoFireActive) ? 200 : 500;
@@ -45,6 +44,8 @@ const Game: React.FC = () => {
       lastShotTime.current = currentTime;
     }
   }, [player]);
+
+  
 
   // Генерация начальных платформ
   const generateInitialPlatforms = useCallback(() => {
@@ -421,22 +422,27 @@ const Game: React.FC = () => {
     draw(ctx);
   }, [platforms, leftPressed, rightPressed, draw, generateInitialPlatforms, player, gameOver, cameraOffset, maxHeight, enemies, bullets]);
 
-  const handleCanvasClick = useCallback((event: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!gameOver || !gameOverScreen.current) return;
+const handleCanvasClick = useCallback((event: React.MouseEvent<HTMLCanvasElement>) => {
+    if (gameOver) {
+      if (!gameOverScreen.current) return;
 
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+      const canvas = canvasRef.current;
+      if (!canvas) return;
 
-    const rect = canvas.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
+      const rect = canvas.getBoundingClientRect();
+      const x = event.clientX - rect.left;
+      const y = event.clientY - rect.top;
 
-    if (gameOverScreen.current.isRestartButtonClicked(x, y)) {
-      console.log('Restart button clicked');
-      resetGame();
+      if (gameOverScreen.current.isRestartButtonClicked(x, y)) {
+        console.log('Restart button clicked');
+        resetGame();
+      }
+    } else {
+      // Стрельба при клике во время игры
+      handleShooting();
     }
-  }, [gameOver, resetGame]);
-
+  }, [gameOver, resetGame, handleShooting]);
+  
   useGameLoop(updateGame, {
     fps: 60,
   });
