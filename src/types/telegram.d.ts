@@ -2,7 +2,14 @@ interface TelegramWebApps {
     WebApp: {
       headerColor: string;
       isOrientationLocked: boolean;
-      // Добавьте другие свойства WebApp, которые вы используете
+      Gyroscope: {
+        isStarted: boolean;
+        x: number;
+        y: number;
+        z: number;
+        start: (params: { refresh_rate?: number }) => void;
+        stop: () => void;
+      }
     }
   }
   

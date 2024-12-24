@@ -10,6 +10,7 @@ import './Game.styles.css';
 import { Enemy } from '../Enemy/Enemy';
 import { checkEnemyCollision } from '../../utils/collision';
 import { Bullet } from '../Bullet/Bullet';
+import { useGyroscope } from '../../hooks/useGyroscope';
 
 const Game: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -23,8 +24,10 @@ const Game: React.FC = () => {
   const [enemies, setEnemies] = useState<Enemy[]>([]);
   const [bullets, setBullets] = useState<Bullet[]>([]);
   
-  const leftPressed = useKeyPress('ArrowLeft');
-  const rightPressed = useKeyPress('ArrowRight');
+  const { isMovingLeft: gyroLeft, isMovingRight: gyroRight } = useGyroscope();
+  
+  const leftPressed = useKeyPress('ArrowLeft') || gyroLeft;
+  const rightPressed = useKeyPress('ArrowRight') || gyroRight;
   const upPressed = useKeyPress('ArrowUp');
   const lastShotTime = useRef(0);
 
