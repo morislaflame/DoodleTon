@@ -146,8 +146,8 @@ export class Player {
     }
 
     // Отладочный прямоугольник
-    ctx.strokeStyle = 'red';
-    ctx.strokeRect(drawX, drawY, this.width, this.height);
+    // ctx.strokeStyle = 'red';
+    // ctx.strokeRect(drawX, drawY, this.width, this.height);
 
     // Добавляем отрисовку щита
     if (this.shieldActive) {

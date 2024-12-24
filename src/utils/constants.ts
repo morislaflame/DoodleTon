@@ -3,7 +3,7 @@ export const GAME_CONFIG = {
     JUMP_FORCE: 12,       // Оставили прежним
     MOVE_SPEED: 5,
     PLATFORM_COUNT: 20,
-    GAME_WIDTH: 400,
+    GAME_WIDTH: 380,
     GAME_HEIGHT: 600,
     PLATFORM_WIDTH: 60,
     PLATFORM_HEIGHT: 15,

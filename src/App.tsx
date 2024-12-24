@@ -10,7 +10,7 @@ function App() {
   return (
     <>
       <div className="game-container">
-        <h1 style={{color: 'black'}}>Doodle Jump</h1>
+        <h1 className="game-title">JUMPER</h1>
         <div className="game-canvas"> 
           <Game />
         </div>
