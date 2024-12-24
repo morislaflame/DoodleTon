@@ -225,10 +225,6 @@ const Game: React.FC = () => {
       const timeLeft = Math.ceil((player.autoFireEndTime - Date.now()) / 1000);
       ctx.fillText(`Auto Fire: ${timeLeft}s`, 10, 90);
     }
-    if (player.shieldActive && player.shieldEndTime) {
-      const timeLeft = Math.ceil((player.shieldEndTime - Date.now()) / 1000);
-      ctx.fillText(`Shield: ${timeLeft}s`, 10, 120);
-    }
   }, [player, platforms, score, gameOver, cameraOffset, enemies, bullets]);
 
   const resetGame = useCallback(() => {
@@ -327,7 +323,6 @@ const Game: React.FC = () => {
           if (player.shieldActive && !fromTop) {
             // Если столкновение произошло со щитом, деактивируем его
             player.shieldActive = false;
-            player.shieldEndTime = null;
           }
         } else {
           // Если столкновение сбоку или снизу и нет щита - игра окончена

@@ -19,7 +19,7 @@ export class Player {
   autoFireActive: boolean;
   autoFireEndTime: number | null;
   shieldActive: boolean;
-  shieldEndTime: number | null;
+
   private currentFrame: number = 0;
   private frameRow: number = 0;
   private lastFrameUpdate: number = 0;
@@ -42,7 +42,6 @@ export class Player {
     this.autoFireActive = false;
     this.autoFireEndTime = null;
     this.shieldActive = false;
-    this.shieldEndTime = null;
 
     if (!Player.sprite) {
       console.log('Starting sprite load...', {
@@ -86,7 +85,7 @@ export class Player {
       return;
     }
 
-    // Определяем кадр анимации в зависимости от состояния
+    // Определяем кадр анимации �� зависимости от состояния
     if (this.velocity.y > 0) {
       // Движение вверх
       this.currentFrame = 2; // Используем кадр для прыжка вверх
@@ -217,7 +216,6 @@ export class Player {
     this.autoFireActive = false;
     this.autoFireEndTime = null;
     this.shieldActive = false;
-    this.shieldEndTime = null;
   }
 
   activateRapidFire() {
@@ -232,7 +230,6 @@ export class Player {
 
   activateShield() {
     this.shieldActive = true;
-    this.shieldEndTime = Date.now() + 10000; // щит на 10 секунд
   }
 
   updateBoosts() {
@@ -243,10 +240,6 @@ export class Player {
     if (this.autoFireEndTime && Date.now() > this.autoFireEndTime) {
       this.autoFireActive = false;
       this.autoFireEndTime = null;
-    }
-    if (this.shieldEndTime && Date.now() > this.shieldEndTime) {
-      this.shieldActive = false;
-      this.shieldEndTime = null;
     }
   }
 }
