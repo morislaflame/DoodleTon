@@ -193,7 +193,7 @@ const Game: React.FC = () => {
     
     if (gameOver) {
       if (!gameOverScreen.current) {
-        gameOverScreen.current = new GameOver(score);
+        gameOverScreen.current = new GameOver(score, player.lives);
       }
       gameOverScreen.current.draw(ctx);
       return;
@@ -211,10 +211,18 @@ const Game: React.FC = () => {
     bullets.forEach(bullet => bullet.draw(ctx));
     ctx.restore();
     
-    // Рисуем счет поверх всего (без смещения)
+    // Рисуем счет и жизни
     ctx.fillStyle = '#fff';
     ctx.font = '20px Arial';
     ctx.fillText(`Score: ${score}`, 10, 30);
+    
+    // Отрисовка жизней
+    for (let i = 0; i < player.lives; i++) {
+      ctx.fillStyle = '#ff0000';
+      ctx.beginPath();
+      ctx.arc(30 + i * 30, 60, 10, 0, Math.PI * 2);
+      ctx.fill();
+    }
     
     // Отображаем состояние буста стрельбы
     if (player.rapidFireActive && player.rapidFireEndTime) {
@@ -299,7 +307,7 @@ const Game: React.FC = () => {
             const newCheckpoint = Math.floor(newHeight / 500) * 500;
             
             if (newCheckpoint > lastCheckpoint) {
-              if (Math.random() < 0.2) { // Возвращаем шанс к 2%
+              if (Math.random() < 0.5) { // Возвращаем шанс к 2%
                 const newEnemy = generateEnemy(player.position.y + GAME_CONFIG.GAME_HEIGHT);
                 setEnemies(prev => [...prev, newEnemy]);
               }
@@ -325,9 +333,16 @@ const Game: React.FC = () => {
             player.shieldActive = false;
           }
         } else {
-          // Если столкновение сбоку или снизу и нет щита - игра окончена
-          setGameOver(true);
-          return;
+          // Если столкновение сбоку или снизу и нет щита
+          const isGameOver = player.loseLife();
+          if (isGameOver) {
+            setGameOver(true);
+            return;
+          } else {
+            // Удаляем врага и даём небольшую неуязвимость (отскок)
+            setEnemies(prev => prev.filter(e => e !== enemy));
+            player.jump(GAME_CONFIG.JUMP_FORCE * 0.7);
+          }
         }
       }
     });

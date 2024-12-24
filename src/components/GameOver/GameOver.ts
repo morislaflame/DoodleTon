@@ -2,9 +2,11 @@ import { GAME_CONFIG } from '../../utils/constants';
 
 export class GameOver {
   private score: number;
+  private lives: number;
 
-  constructor(score: number) {
+  constructor(score: number, lives: number) {
     this.score = score;
+    this.lives = lives;
   }
 
   draw(ctx: CanvasRenderingContext2D) {
@@ -42,6 +44,11 @@ export class GameOver {
     ctx.fillStyle = '#fff';
     ctx.font = '20px Arial';
     ctx.fillText('Restart', GAME_CONFIG.GAME_WIDTH / 2, GAME_CONFIG.GAME_HEIGHT / 2 + 55);
+    
+    // Добавляем причину проигрыша
+    ctx.font = '20px Arial';
+    const reason = this.lives <= 0 ? 'Все жизни потрачены!' : 'Падение вниз!';
+    ctx.fillText(reason, GAME_CONFIG.GAME_WIDTH / 2, GAME_CONFIG.GAME_HEIGHT / 2 + 20);
     
     // Восстанавливаем контекст
     ctx.restore();

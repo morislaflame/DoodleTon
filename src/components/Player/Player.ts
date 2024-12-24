@@ -19,6 +19,7 @@ export class Player {
   autoFireActive: boolean;
   autoFireEndTime: number | null;
   shieldActive: boolean;
+  lives: number;
 
   private currentFrame: number = 0;
   private frameRow: number = 0;
@@ -42,6 +43,7 @@ export class Player {
     this.autoFireActive = false;
     this.autoFireEndTime = null;
     this.shieldActive = false;
+    this.lives = 3;
 
     if (!Player.sprite) {
       console.log('Starting sprite load...', {
@@ -85,7 +87,7 @@ export class Player {
       return;
     }
 
-    // Определяем кадр анимации �� зависимости от состояния
+    // Определяем кадр анимации  зависимости от состояния
     if (this.velocity.y > 0) {
       // Движение вверх
       this.currentFrame = 2; // Используем кадр для прыжка вверх
@@ -216,6 +218,7 @@ export class Player {
     this.autoFireActive = false;
     this.autoFireEndTime = null;
     this.shieldActive = false;
+    this.lives = 3;
   }
 
   activateRapidFire() {
@@ -241,5 +244,10 @@ export class Player {
       this.autoFireActive = false;
       this.autoFireEndTime = null;
     }
+  }
+
+  loseLife() {
+    this.lives--;
+    return this.lives <= 0;
   }
 }
