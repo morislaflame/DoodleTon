@@ -23,19 +23,29 @@ export class Enemy {
 }
 
 draw(ctx: CanvasRenderingContext2D) {
-    const yOffset = Math.sin(this.animationFrame / 20) * 3;
     
+    // Рисуем основной спрайт врага
     ctx.fillStyle = this.type === 'static' ? '#ff0000' : '#ff6600';
     ctx.beginPath();
     ctx.arc(
       this.position.x + this.width / 2,
-      GAME_CONFIG.GAME_HEIGHT - (this.position.y + yOffset),
+      GAME_CONFIG.GAME_HEIGHT - this.position.y + this.height / 2, // Центрируем круг по вертикали в прямоугольнике
       this.width / 2,
       0,
       Math.PI * 2
     );
     ctx.fill();
-  }
+
+    // Рисуем прямоугольник взаимодействия
+    ctx.strokeStyle = '#ff0000';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(
+      this.position.x,
+      GAME_CONFIG.GAME_HEIGHT - this.position.y,
+      this.width,
+      this.height
+    );
+}
 
   update() {
     this.animationFrame++;
