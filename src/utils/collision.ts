@@ -40,22 +40,20 @@ export const handlePlatformCollision = (
         platform.boost.collect();
         newVelocityY *= platform.boost.getBoostMultiplier();
       }
-    } else if (platform.boost.type === 'rapidfire' || platform.boost.type === 'autofire') {
+    } else if (platform.boost.type === 'rapidfire' || 
+               platform.boost.type === 'autofire' || 
+               platform.boost.type === 'shield') {
       const isBoostCollision = checkBoostCollision(player, platform.boost) || 
                               checkShootingBoostCollision(player, platform.boost);
       if (isBoostCollision) {
         platform.boost.collect();
         if (platform.boost.type === 'rapidfire') {
           player.activateRapidFire();
-        } else {
+        } else if (platform.boost.type === 'autofire') {
           player.activateAutoFire();
+        } else if (platform.boost.type === 'shield') {
+          player.activateShield();
         }
-      }
-    } else if (platform.boost.type === 'shield') {
-      const isBoostCollision = checkBoostCollision(player, platform.boost);
-      if (isBoostCollision) {
-        platform.boost.collect();
-        player.activateShield();
       }
     }
   }
@@ -139,7 +137,7 @@ export const checkBulletEnemyCollision = (bullet: Bullet, enemy: Enemy): boolean
   };
 export const checkShootingBoostCollision = (player: Player, boost: Boost): boolean => {
   if (boost.isCollected) return false;
-  if (boost.type !== 'rapidfire' && boost.type !== 'autofire') return false;
+  if (boost.type !== 'rapidfire' && boost.type !== 'autofire' && boost.type !== 'shield') return false;
 
   const playerLeft = player.position.x;
   const playerRight = player.position.x + player.width;

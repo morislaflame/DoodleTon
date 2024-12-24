@@ -363,7 +363,7 @@ const Game: React.FC = () => {
     setBullets(prev => {
         const updatedBullets = prev.filter(bullet => {
           bullet.update();
-          // Удаляем пули, котор��е ушли за пределы экрана
+          // Удаляем пули, которые ушли за пределы экрана
           return bullet.position.y < player.position.y + GAME_CONFIG.GAME_HEIGHT;
         });
         return updatedBullets;
@@ -387,18 +387,23 @@ const Game: React.FC = () => {
     // Проверяем коллизии с бустами стрельбы во время полета
     platforms.forEach(platform => {
       if (platform.boost && !platform.boost.isCollected) {
-        if (platform.boost.type === 'rapidfire' || platform.boost.type === 'autofire') {
+        if (platform.boost.type === 'rapidfire' || 
+            platform.boost.type === 'autofire' || 
+            platform.boost.type === 'shield') {  // Добавляем проверку щита
           if (checkShootingBoostCollision(player, platform.boost)) {
             platform.boost.collect();
             if (platform.boost.type === 'rapidfire') {
               player.activateRapidFire();
-            } else {
+            } else if (platform.boost.type === 'autofire') {
               player.activateAutoFire();
+            } else if (platform.boost.type === 'shield') {
+              player.activateShield();
             }
           }
         }
       }
     });
+
 
     draw(ctx);
   }, [platforms, leftPressed, rightPressed, draw, generateInitialPlatforms, player, gameOver, cameraOffset, maxHeight, enemies, bullets]);
