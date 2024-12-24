@@ -225,6 +225,10 @@ const Game: React.FC = () => {
       const timeLeft = Math.ceil((player.autoFireEndTime - Date.now()) / 1000);
       ctx.fillText(`Auto Fire: ${timeLeft}s`, 10, 90);
     }
+    if (player.shieldActive && player.shieldEndTime) {
+      const timeLeft = Math.ceil((player.shieldEndTime - Date.now()) / 1000);
+      ctx.fillText(`Shield: ${timeLeft}s`, 10, 120);
+    }
   }, [player, platforms, score, gameOver, cameraOffset, enemies, bullets]);
 
   const resetGame = useCallback(() => {
@@ -314,13 +318,19 @@ const Game: React.FC = () => {
       const { collision, fromTop } = checkEnemyCollision(player, enemy);
       
       if (collision) {
-        if (fromTop) {
-          // Если игрок падает на врага сверху, отпрыгиваем
+        if (fromTop || player.shieldActive) {
+          // Если игрок падает на врага сверху или имеет щит
           player.jump(GAME_CONFIG.JUMP_FORCE);
           // Удаляем врага
           setEnemies(prev => prev.filter(e => e !== enemy));
+          
+          if (player.shieldActive && !fromTop) {
+            // Если столкновение произошло со щитом, деактивируем его
+            player.shieldActive = false;
+            player.shieldEndTime = null;
+          }
         } else {
-          // Если столкновение сбоку или снизу - игра окончена
+          // Если столкновение сбоку или снизу и нет щита - игра окончена
           setGameOver(true);
           return;
         }
@@ -353,7 +363,7 @@ const Game: React.FC = () => {
     setBullets(prev => {
         const updatedBullets = prev.filter(bullet => {
           bullet.update();
-          // Удаляем пули, которые ушли за пределы экрана
+          // Удаляем пули, котор��е ушли за пределы экрана
           return bullet.position.y < player.position.y + GAME_CONFIG.GAME_HEIGHT;
         });
         return updatedBullets;

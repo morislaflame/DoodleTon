@@ -35,14 +35,12 @@ export const handlePlatformCollision = (
   
   if (platform.boost && !platform.boost.isCollected) {
     if (platform.boost.type === 'double' || platform.boost.type === 'quadruple') {
-      // Для бустов прыжка используем старую логику
       const isBoostCollision = checkBoostCollision(player, platform.boost);
       if (isBoostCollision) {
         platform.boost.collect();
         newVelocityY *= platform.boost.getBoostMultiplier();
       }
     } else if (platform.boost.type === 'rapidfire' || platform.boost.type === 'autofire') {
-      // Для бустов стрельбы проверяем оба типа коллизий
       const isBoostCollision = checkBoostCollision(player, platform.boost) || 
                               checkShootingBoostCollision(player, platform.boost);
       if (isBoostCollision) {
@@ -52,6 +50,12 @@ export const handlePlatformCollision = (
         } else {
           player.activateAutoFire();
         }
+      }
+    } else if (platform.boost.type === 'shield') {
+      const isBoostCollision = checkBoostCollision(player, platform.boost);
+      if (isBoostCollision) {
+        platform.boost.collect();
+        player.activateShield();
       }
     }
   }

@@ -37,6 +37,9 @@ export class Boost {
       case 'autofire':
         ctx.fillStyle = '#0000ff';
         break;
+      case 'shield':
+        ctx.fillStyle = '#00ffff';
+        break;
     }
     
     ctx.beginPath();
@@ -77,6 +80,8 @@ export class Boost {
       case 'rapidfire':
         return 1;
       case 'autofire':
+        return 1;
+      case 'shield':
         return 1;
     }
   }

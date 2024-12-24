@@ -18,6 +18,8 @@ export class Player {
   rapidFireEndTime: number | null;
   autoFireActive: boolean;
   autoFireEndTime: number | null;
+  shieldActive: boolean;
+  shieldEndTime: number | null;
   private currentFrame: number = 0;
   private frameRow: number = 0;
   private lastFrameUpdate: number = 0;
@@ -39,6 +41,8 @@ export class Player {
     this.rapidFireEndTime = null;
     this.autoFireActive = false;
     this.autoFireEndTime = null;
+    this.shieldActive = false;
+    this.shieldEndTime = null;
 
     if (!Player.sprite) {
       console.log('Starting sprite load...', {
@@ -143,6 +147,21 @@ export class Player {
     // Отладочный прямоугольник
     ctx.strokeStyle = 'red';
     ctx.strokeRect(drawX, drawY, this.width, this.height);
+
+    // Добавляем отрисовку щита
+    if (this.shieldActive) {
+      ctx.strokeStyle = '#00ffff';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(
+        this.position.x + this.width / 2,
+        GAME_CONFIG.GAME_HEIGHT - this.position.y + this.height / 2,
+        this.width / 1.5,
+        0,
+        Math.PI * 2
+      );
+      ctx.stroke();
+    }
   }
 
   private updateAnimation() {
@@ -197,6 +216,8 @@ export class Player {
     this.rapidFireEndTime = null;
     this.autoFireActive = false;
     this.autoFireEndTime = null;
+    this.shieldActive = false;
+    this.shieldEndTime = null;
   }
 
   activateRapidFire() {
@@ -209,6 +230,11 @@ export class Player {
     this.autoFireEndTime = Date.now() + 7000; // 7 секунд
   }
 
+  activateShield() {
+    this.shieldActive = true;
+    this.shieldEndTime = Date.now() + 10000; // щит на 10 секунд
+  }
+
   updateBoosts() {
     if (this.rapidFireEndTime && Date.now() > this.rapidFireEndTime) {
       this.rapidFireActive = false;
@@ -217,6 +243,10 @@ export class Player {
     if (this.autoFireEndTime && Date.now() > this.autoFireEndTime) {
       this.autoFireActive = false;
       this.autoFireEndTime = null;
+    }
+    if (this.shieldEndTime && Date.now() > this.shieldEndTime) {
+      this.shieldActive = false;
+      this.shieldEndTime = null;
     }
   }
 }

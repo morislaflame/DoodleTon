@@ -49,6 +49,11 @@ export class Platform {
           x: position.x + GAME_CONFIG.PLATFORM_WIDTH / 2 - 10,
           y: position.y + GAME_CONFIG.PLATFORM_HEIGHT + 0
         }, 'autofire');
+      } else if (random < 0.23) {
+        this.boost = new Boost({
+          x: position.x + GAME_CONFIG.PLATFORM_WIDTH / 2 - 10,
+          y: position.y + GAME_CONFIG.PLATFORM_HEIGHT + 0
+        }, 'shield');
       }
     }
   }
