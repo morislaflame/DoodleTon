@@ -22,7 +22,7 @@ export class Player {
   lives: number;
 
   private currentFrame: number = 0;
-  private frameRow: number = 0;
+  // private frameRow: number = 0;
   private lastFrameUpdate: number = 0;
   private frameUpdateInterval: number = 100; // Интервал обновления кадра в мс
 
@@ -174,7 +174,7 @@ export class Player {
     }
   }
 
-  update(deltaTime: number, leftPressed: boolean, rightPressed: boolean) {
+  update(_deltaTime: number, leftPressed: boolean, rightPressed: boolean) {
     if (leftPressed) {
       this.velocity.x = -GAME_CONFIG.MOVE_SPEED;
     } else if (rightPressed) {
