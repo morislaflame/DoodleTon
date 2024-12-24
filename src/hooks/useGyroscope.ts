@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 export const useGyroscope = () => {
   const [isMovingLeft, setIsMovingLeft] = useState(false);
   const [isMovingRight, setIsMovingRight] = useState(false);
-
+  const lastY = useRef(0);
+  
   useEffect(() => {
     const tg = window.Telegram.WebApp;
     
@@ -13,11 +14,17 @@ export const useGyroscope = () => {
       const handleOrientation = () => {
         const y = tg.Gyroscope.y;
         
-        // Определяем пороговые значения для наклона
-        const threshold = 0.3;
+        // Применяем сглаживание
+        const smoothingFactor = 0.2;
+        const smoothedY = y * smoothingFactor + lastY.current * (1 - smoothingFactor);
+        lastY.current = smoothedY;
         
-        setIsMovingLeft(y > threshold);
-        setIsMovingRight(y < -threshold);
+        // Определяем пороговые значения для наклона
+        const threshold = 0.2;
+        
+        // Инвертируем направление движения
+        setIsMovingLeft(smoothedY < -threshold);
+        setIsMovingRight(smoothedY > threshold);
       };
 
       // Запускаем проверку каждые 16мс (примерно 60fps)
