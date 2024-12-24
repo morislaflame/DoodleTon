@@ -19,7 +19,7 @@ export class Bullet {
   }
 
   draw(ctx: CanvasRenderingContext2D) {
-    ctx.fillStyle = '#000';
+    ctx.fillStyle = 'red';
     ctx.beginPath();
     ctx.arc(
       this.position.x,

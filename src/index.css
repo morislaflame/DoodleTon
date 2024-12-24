@@ -26,6 +26,10 @@ body {
   position: relative;
   flex-direction: column;
   margin: 0 auto;
-  background-color: #fff;
+  background-color: #242424;
   overflow: hidden;
+}
+
+.game-canvas {
+  background: radial-gradient(ellipse at right top, #1c051e, black, #1a0734) !important;
 }

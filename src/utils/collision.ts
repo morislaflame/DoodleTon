@@ -7,26 +7,24 @@ import { GAME_CONFIG } from './constants';
 
 // Проверка столкновения игрока с платформой
 export const checkPlatformCollision = (player: Player, platform: Platform): boolean => {
-  // Проверяем столкновение только если игрок падает
-  if (player.velocity.y >= 0) return false;
-
-  const playerLeft = player.position.x;
-  const playerRight = player.position.x + player.width;
-  const platformLeft = platform.position.x;
-  const platformRight = platform.position.x + platform.width;
-
-  // Изменяем определение нижней границы игрока
-  const playerBottom = player.position.y;
-  const platformTop = platform.position.y + platform.height * 2 ;
-
-  // Проверяем горизонтальное перекрытие
-  const horizontalOverlap = playerRight > platformLeft && playerLeft < platformRight;
+    // Проверяем столкновение только если игрок падает
+    if (player.velocity.y >= 0) return false;
   
-  // Уменьшаем диапазон проверки до 5 пикселей для более точного определения
-  const verticalOverlap = Math.abs(playerBottom - platformTop) < 5;
-
-  return horizontalOverlap && verticalOverlap && player.velocity.y < 0;
-};
+    const playerLeft = player.position.x;
+    const playerRight = player.position.x + player.width;
+    const platformLeft = platform.position.x;
+    const platformRight = platform.position.x + platform.width;
+  
+    const playerBottom = player.position.y;
+    const platformTop = platform.position.y + platform.height * 2;
+  
+    return (
+      playerRight > platformLeft &&
+      playerLeft < platformRight &&
+      Math.abs(playerBottom - platformTop) < 10 &&
+      player.velocity.y < 0
+    );
+  };
 
 // Обработка столкновения с платформой разного типа
 export const handlePlatformCollision = (
@@ -35,11 +33,21 @@ export const handlePlatformCollision = (
 ): { newVelocityY: number; shouldBreak: boolean } => {
   let newVelocityY = GAME_CONFIG.JUMP_FORCE;
   
-  if (platform.boost && !platform.boost.isCollected && 
-      platform.boost.type !== 'rapidfire' && platform.boost.type !== 'autofire' && 
-      checkBoostCollision(player, platform.boost)) {
-    platform.boost.collect();
-    newVelocityY *= platform.boost.getBoostMultiplier();
+  if (platform.boost && !platform.boost.isCollected) {
+    const isBoostCollision = platform.boost.type === 'rapidfire' || platform.boost.type === 'autofire'
+      ? checkShootingBoostCollision(player, platform.boost)
+      : checkBoostCollision(player, platform.boost);
+      
+    if (isBoostCollision) {
+      platform.boost.collect();
+      if (platform.boost.type === 'rapidfire') {
+        player.activateRapidFire();
+      } else if (platform.boost.type === 'autofire') {
+        player.activateAutoFire();
+      } else {
+        newVelocityY *= platform.boost.getBoostMultiplier();
+      }
+    }
   }
 
   switch (platform.type) {
@@ -68,16 +76,13 @@ export const checkBoostCollision = (player: Player, boost: Boost): boolean => {
   const boostRight = boost.position.x + boost.width;
 
   const playerBottom = player.position.y;
-  const playerTop = player.position.y + player.height;
-  const boostBottom = boost.position.y;
   const boostTop = boost.position.y + boost.height;
 
-  return (
-    playerRight > boostLeft &&
-    playerLeft < boostRight &&
-    playerTop > boostBottom &&
-    playerBottom < boostTop
-  );
+  // Используем ту же логику, что и для платформ
+  const horizontalOverlap = playerRight > boostLeft && playerLeft < boostRight;
+  const verticalOverlap = Math.abs(playerBottom - boostTop) < 15; // Немного увеличиваем зону определения для бустов
+
+  return horizontalOverlap && verticalOverlap;
 };
 
 export const checkEnemyCollision = (player: Player, enemy: Enemy): { collision: boolean, fromTop: boolean } => {
@@ -132,15 +137,15 @@ export const checkShootingBoostCollision = (player: Player, boost: Boost): boole
   const boostLeft = boost.position.x;
   const boostRight = boost.position.x + boost.width;
 
+  // Используем ту же логику координат Y, что и для платформ
   const playerBottom = player.position.y;
-  const playerTop = player.position.y + player.height;
-  const boostBottom = boost.position.y;
-  const boostTop = boost.position.y + boost.height;
+  const boostTop = boost.position.y;
 
-  return (
-    playerRight > boostLeft &&
-    playerLeft < boostRight &&
-    playerTop > boostBottom &&
-    playerBottom < boostTop
-  );
+  // Горизонтальное перекрытие
+  const horizontalOverlap = playerRight > boostLeft && playerLeft < boostRight;
+  
+  // Вертикальное перекрытие (используем тот же принцип, что и для платформ)
+  const verticalOverlap = Math.abs(playerBottom - boostTop) < 15;
+
+  return horizontalOverlap && verticalOverlap;
 };

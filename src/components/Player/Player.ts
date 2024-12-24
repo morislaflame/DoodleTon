@@ -4,10 +4,10 @@ import { GAME_CONFIG } from '../../utils/constants';
 export class Player {
   private static sprite: HTMLImageElement;
   private static isImageLoaded: boolean = false;
-  private frameWidth: number = 100;
-  private frameHeight: number = 100;
-  private framesInRow: number = 9;
-  private framesInColumn: number = 7;
+  private frameWidth: number = 32;
+  private frameHeight: number = 32;
+  private framesInRow: number = 8;
+  private framesInColumn: number = 1;
 
   position: Position;
   velocity: Position;
@@ -62,7 +62,7 @@ export class Player {
       Player.sprite.onerror = (e) => {
         console.error('Sprite load error:', e);
       };
-      Player.sprite.src = 'assets/Soldier.png';
+      Player.sprite.src = 'assets/Owlet_Monster_Jump_8.png';
     }
   }
 
@@ -73,7 +73,7 @@ export class Player {
       ctx.beginPath();
       ctx.arc(
         this.position.x + this.width / 2,
-        GAME_CONFIG.GAME_HEIGHT - this.position.y,
+        GAME_CONFIG.GAME_HEIGHT - this.position.y, 
         this.width / 2,
         0,
         Math.PI * 2
@@ -82,54 +82,58 @@ export class Player {
       return;
     }
 
-    // Определяем кадр анимации
+    // Определяем кадр анимации в зависимости от состояния
     if (this.velocity.y > 0) {
-      this.frameRow = 3;
+      // Движение вверх
+      this.currentFrame = 2; // Используем кадр для прыжка вверх
     } else if (this.velocity.y < 0) {
-      this.frameRow = 4;
+      // Падение
+      this.currentFrame = 6; // Используем кадр для падения
     } else if (this.velocity.x !== 0) {
-      this.frameRow = 2;
-      this.updateAnimation();
+      // Движение в сторону
+      this.updateAnimation(); // Анимация бега
     } else {
-      this.frameRow = 0;
-      this.currentFrame = 0;
+      // Стоим на месте
+      this.currentFrame = 0; // Используем кадр для idle состояния
     }
 
     const drawX = this.position.x;
     const drawY = GAME_CONFIG.GAME_HEIGHT - this.position.y;
 
-    // Увеличиваем размер спрайта
-    const scaleFactor = 6; // Увеличиваем в 1.8 раза
+    const scaleFactor = 1.5;
     const scaledWidth = this.width * scaleFactor;
     const scaledHeight = this.height * scaleFactor;
+    
+    // Вычисляем смещение для центрирования
     const offsetX = (scaledWidth - this.width) / 2;
     const offsetY = (scaledHeight - this.height) / 2;
+    const verticalAdjustment = 10; // Добавляем дополнительное смещение вверх
 
-    // Центрируем спрайт в прямоугольнике
+    // Отрисовка с учетом направления движения и центрирования
     if (this.velocity.x >= 0) {
       ctx.drawImage(
         Player.sprite,
         this.currentFrame * this.frameWidth,
-        this.frameRow * this.frameHeight,
+        0,
         this.frameWidth,
         this.frameHeight,
         drawX - offsetX,
-        drawY - offsetY,
+        drawY - offsetY - verticalAdjustment, // Добавляем смещение вверх
         scaledWidth,
         scaledHeight
       );
     } else {
       ctx.save();
-      ctx.translate(drawX, drawY - offsetY);
+      ctx.translate(drawX + this.width / 2, drawY + this.height / 2);
       ctx.scale(-1, 1);
       ctx.drawImage(
         Player.sprite,
         this.currentFrame * this.frameWidth,
-        this.frameRow * this.frameHeight,
+        0,
         this.frameWidth,
         this.frameHeight,
-        -scaledWidth + offsetX,
-        0,
+        -scaledWidth / 2,
+        -scaledHeight / 2 - verticalAdjustment, // Добавляем смещение вверх
         scaledWidth,
         scaledHeight
       );
@@ -144,7 +148,8 @@ export class Player {
   private updateAnimation() {
     const now = Date.now();
     if (now - this.lastFrameUpdate >= this.frameUpdateInterval) {
-      this.currentFrame = (this.currentFrame + 1) % this.framesInRow;
+      // Анимация бега использует кадры с 3 по 5
+      this.currentFrame = 3 + ((this.currentFrame - 2) % 3);
       this.lastFrameUpdate = now;
     }
   }
