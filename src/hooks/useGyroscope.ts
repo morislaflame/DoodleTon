@@ -26,7 +26,7 @@ export const useGyroscope = () => {
         lastY.current = smoothedY;
         
         // Определяем пороговые значения для наклона
-        const threshold = 0.05; // Уменьшили порог до минимального значения
+        const threshold = 0.1; // Уменьшили порог до минимального значения
         
         // Инвертируем направление движения
         setIsMovingLeft(smoothedY < -threshold);
