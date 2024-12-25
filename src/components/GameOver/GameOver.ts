@@ -10,6 +10,7 @@ export class GameOver {
   }
 
   draw(ctx: CanvasRenderingContext2D) {
+
     // Сохраняем текущий контекст
     ctx.save();
     
